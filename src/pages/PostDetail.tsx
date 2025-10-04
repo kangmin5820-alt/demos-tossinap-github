@@ -228,35 +228,35 @@ const PostDetail = () => {
             <h2 className="mb-6 text-2xl font-bold text-foreground">💡 대표 의견</h2>
             <div className="space-y-3">
               {sortedOpinions.map((opinion) => (
-                <Card key={opinion.id} className="overflow-hidden border-none bg-card shadow-sm hover:shadow-md transition-shadow rounded-2xl">
-                  <div className="p-4">
-                    <div className="mb-3 flex items-start gap-3">
-                      <Avatar className="h-10 w-10">
+                <Card key={opinion.id} className="overflow-hidden border-none bg-card shadow-sm hover:shadow-md transition-shadow rounded-3xl">
+                  <div className="p-5">
+                    <div className="mb-4 flex items-start gap-3">
+                      <Avatar className="h-11 w-11">
                         <AvatarImage src={opinion.avatar} />
-                        <AvatarFallback className="bg-gradient-hero text-white">
+                        <AvatarFallback className="bg-gradient-hero text-white font-semibold">
                           {opinion.user.charAt(0)}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-foreground text-sm">{opinion.user}</p>
-                        <p className="text-foreground mt-2 text-[15px] leading-relaxed">
+                        <p className="font-semibold text-foreground text-[15px]">{opinion.user}</p>
+                        <p className="text-foreground/90 mt-2 text-[15px] leading-relaxed">
                           {opinion.content}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center justify-between pl-13">
+                    <div className="flex items-center gap-1 pl-14">
                       <Button 
                         variant="ghost" 
                         size="sm"
                         onClick={() => handleVote(opinion.id)}
-                        className="group hover:bg-red-50 dark:hover:bg-red-950/20 rounded-full"
+                        className="group h-8 hover:bg-transparent rounded-full px-2 -ml-2"
                       >
-                        <Heart className="h-4 w-4 mr-1.5 group-hover:fill-red-500 group-hover:text-red-500 transition-colors" />
-                        <span className="font-medium group-hover:text-red-500 transition-colors">{opinion.votes}</span>
+                        <Heart className="h-[18px] w-[18px] mr-1 group-hover:fill-red-500 group-hover:text-red-500 transition-all" />
+                        <span className="font-medium text-sm group-hover:text-red-500 transition-colors">{opinion.votes}</span>
                       </Button>
-                      <Button variant="ghost" size="sm" className="rounded-full">
-                        <MessageCircle className="h-4 w-4 mr-1.5" />
-                        <span>답글</span>
+                      <Button variant="ghost" size="sm" className="h-8 hover:bg-transparent rounded-full px-2">
+                        <MessageCircle className="h-[18px] w-[18px] mr-1" />
+                        <span className="text-sm">답글</span>
                       </Button>
                     </div>
                   </div>
