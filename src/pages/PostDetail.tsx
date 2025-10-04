@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Collapsible,
   CollapsibleContent,
@@ -17,6 +18,7 @@ import {
   MessageCircle,
   TrendingUp,
   Calculator,
+  Heart,
 } from "lucide-react";
 
 interface Perspective {
@@ -66,15 +68,58 @@ const getStanceColor = (stance: string) => {
   }
 };
 
+interface Opinion {
+  id: number;
+  user: string;
+  avatar: string;
+  content: string;
+  votes: number;
+}
+
 const PostDetail = () => {
   const { id } = useParams();
   const [openPerspectives, setOpenPerspectives] = useState<string[]>(["progressive"]);
+  const [opinions, setOpinions] = useState<Opinion[]>([
+    {
+      id: 1,
+      user: "민주시민",
+      avatar: "",
+      content: "이 사안은 방송의 독립성과 관련된 중요한 문제입니다. 양측의 주장을 모두 들어볼 필요가 있다고 생각합니다.",
+      votes: 142
+    },
+    {
+      id: 2,
+      user: "정책전문가",
+      avatar: "",
+      content: "법적 절차를 투명하게 진행하는 것이 가장 중요합니다. 정치적 해석보다는 법리적 판단이 우선되어야 합니다.",
+      votes: 89
+    },
+    {
+      id: 3,
+      user: "일반시민",
+      avatar: "",
+      content: "복잡한 문제지만 국민의 알 권리가 보장되는 방향으로 해결되길 바랍니다.",
+      votes: 56
+    }
+  ]);
 
   const togglePerspective = (stance: string) => {
     setOpenPerspectives((prev) =>
       prev.includes(stance) ? prev.filter((s) => s !== stance) : [...prev, stance]
     );
   };
+
+  const handleVote = (opinionId: number) => {
+    setOpinions(prev => 
+      prev.map(opinion => 
+        opinion.id === opinionId 
+          ? { ...opinion, votes: opinion.votes + 1 }
+          : opinion
+      ).sort((a, b) => b.votes - a.votes)
+    );
+  };
+
+  const sortedOpinions = [...opinions].sort((a, b) => b.votes - a.votes);
 
   return (
     <div className="min-h-screen bg-background">
@@ -97,14 +142,16 @@ const PostDetail = () => {
             </div>
           </div>
 
-          <Card className="mb-8 bg-gradient-card p-6 shadow-card">
-            <h2 className="mb-3 text-xl font-bold text-foreground">📋 핵심 요약</h2>
-            <p className="leading-relaxed text-foreground">
-              방송통신위원회 이진숙 위원장 후보자에 대한 체포적부심사가 오늘 오후 진행됩니다.
-              이번 사건은 방송 장악 의혹과 대통령의 예능 프로그램 출연을 둘러싼
-              정치적 논란이 맞물려 있습니다. 진보와 보수 진영은 각각 다른 관점에서
-              이 사안을 바라보고 있으며, 향후 방송 정책에 미칠 영향이 주목됩니다.
-            </p>
+          <Card className="mb-8 border-none bg-card shadow-sm rounded-2xl">
+            <div className="p-6">
+              <h2 className="mb-3 text-xl font-bold text-foreground">📋 핵심 요약</h2>
+              <p className="leading-relaxed text-foreground">
+                방송통신위원회 이진숙 위원장 후보자에 대한 체포적부심사가 오늘 오후 진행됩니다.
+                이번 사건은 방송 장악 의혹과 대통령의 예능 프로그램 출연을 둘러싼
+                정치적 논란이 맞물려 있습니다. 진보와 보수 진영은 각각 다른 관점에서
+                이 사안을 바라보고 있으며, 향후 방송 정책에 미칠 영향이 주목됩니다.
+              </p>
+            </div>
           </Card>
 
           <div className="mb-8">
@@ -116,11 +163,11 @@ const PostDetail = () => {
                   open={openPerspectives.includes(perspective.stance)}
                   onOpenChange={() => togglePerspective(perspective.stance)}
                 >
-                  <Card className="overflow-hidden bg-gradient-card shadow-card">
+                  <Card className="overflow-hidden border-none bg-card shadow-sm hover:shadow-md transition-shadow rounded-2xl">
                     <CollapsibleTrigger className="w-full">
-                      <div className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
                         <div className="flex items-center gap-3">
-                          <Badge className={getStanceColor(perspective.stance)}>
+                          <Badge className={`${getStanceColor(perspective.stance)} rounded-full px-4 py-1`}>
                             {perspective.title}
                           </Badge>
                         </div>
@@ -133,14 +180,14 @@ const PostDetail = () => {
                     </CollapsibleTrigger>
                     <CollapsibleContent>
                       <div className="border-t p-4">
-                        <p className="mb-4 text-foreground">{perspective.summary}</p>
+                        <p className="mb-4 text-foreground leading-relaxed">{perspective.summary}</p>
                         <div className="space-y-2">
                           <h4 className="font-semibold text-foreground">대표 기사</h4>
                           {perspective.articles.map((article, idx) => (
                             <a
                               key={idx}
                               href={article.url}
-                              className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/50"
+                              className="flex items-center justify-between rounded-xl border bg-muted/20 p-3 transition-all hover:bg-muted/40 hover:shadow-sm"
                             >
                               <div>
                                 <p className="font-medium text-foreground">{article.title}</p>
@@ -158,17 +205,19 @@ const PostDetail = () => {
             </div>
           </div>
 
-          <Card className="mb-8 bg-gradient-hero p-6 shadow-card">
-            <div className="flex items-start gap-3 text-white">
-              <Calculator className="h-6 w-6 flex-shrink-0" />
-              <div className="flex-1">
-                <h3 className="mb-2 text-xl font-bold">영향 계산기</h3>
-                <p className="mb-4 opacity-90">
-                  이 정책이 당신에게 미칠 영향을 확인해보세요
-                </p>
-                <Button variant="secondary" className="bg-white text-primary hover:bg-white/90">
-                  영향 계산하기
-                </Button>
+          <Card className="mb-8 border-none bg-gradient-hero shadow-md rounded-2xl">
+            <div className="p-6">
+              <div className="flex items-start gap-3 text-white">
+                <Calculator className="h-6 w-6 flex-shrink-0" />
+                <div className="flex-1">
+                  <h3 className="mb-2 text-xl font-bold">영향 계산기</h3>
+                  <p className="mb-4 opacity-90">
+                    이 정책이 당신에게 미칠 영향을 확인해보세요
+                  </p>
+                  <Button variant="secondary" className="bg-white text-primary hover:bg-white/90 rounded-full">
+                    영향 계산하기
+                  </Button>
+                </div>
               </div>
             </div>
           </Card>
@@ -176,41 +225,68 @@ const PostDetail = () => {
           <Separator className="my-8" />
 
           <div className="mb-8">
-            <h2 className="mb-4 text-2xl font-bold text-foreground">💡 대표 의견</h2>
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <Card key={i} className="bg-gradient-card p-4 shadow-card">
-                  <div className="mb-2 flex items-center justify-between">
-                    <span className="font-semibold text-foreground">사용자{i}</span>
-                    <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="sm">
-                        <ThumbsUp className="h-4 w-4" />
-                        <span className="ml-1">24</span>
+            <h2 className="mb-6 text-2xl font-bold text-foreground">💡 대표 의견</h2>
+            <div className="space-y-3">
+              {sortedOpinions.map((opinion) => (
+                <Card key={opinion.id} className="overflow-hidden border-none bg-card shadow-sm hover:shadow-md transition-shadow rounded-2xl">
+                  <div className="p-4">
+                    <div className="mb-3 flex items-start gap-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={opinion.avatar} />
+                        <AvatarFallback className="bg-gradient-hero text-white">
+                          {opinion.user.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-foreground text-sm">{opinion.user}</p>
+                        <p className="text-foreground mt-2 text-[15px] leading-relaxed">
+                          {opinion.content}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between pl-13">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleVote(opinion.id)}
+                        className="group hover:bg-red-50 dark:hover:bg-red-950/20 rounded-full"
+                      >
+                        <Heart className="h-4 w-4 mr-1.5 group-hover:fill-red-500 group-hover:text-red-500 transition-colors" />
+                        <span className="font-medium group-hover:text-red-500 transition-colors">{opinion.votes}</span>
+                      </Button>
+                      <Button variant="ghost" size="sm" className="rounded-full">
+                        <MessageCircle className="h-4 w-4 mr-1.5" />
+                        <span>답글</span>
                       </Button>
                     </div>
                   </div>
-                  <p className="text-foreground">
-                    이 사안은 방송의 독립성과 관련된 중요한 문제입니다.
-                    양측의 주장을 모두 들어볼 필요가 있다고 생각합니다.
-                  </p>
                 </Card>
               ))}
             </div>
           </div>
 
-          <Card className="bg-gradient-card p-6 shadow-card">
-            <h3 className="mb-4 text-xl font-bold text-foreground">
-              <MessageCircle className="mb-1 mr-2 inline h-5 w-5" />
-              댓글
-            </h3>
-            <div className="rounded-lg border p-4">
-              <textarea
-                className="w-full resize-none border-0 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none"
-                rows={3}
-                placeholder="의견을 남겨주세요..."
-              />
-              <div className="mt-3 flex justify-end">
-                <Button>댓글 작성</Button>
+          <Card className="border-none bg-card shadow-sm rounded-2xl">
+            <div className="p-6">
+              <h3 className="mb-4 text-xl font-bold text-foreground flex items-center gap-2">
+                <MessageCircle className="h-5 w-5" />
+                댓글
+              </h3>
+              <div className="flex gap-3">
+                <Avatar className="h-10 w-10">
+                  <AvatarFallback className="bg-gradient-hero text-white">
+                    나
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <textarea
+                    className="w-full resize-none rounded-2xl border bg-muted/30 p-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    rows={3}
+                    placeholder="의견을 남겨주세요..."
+                  />
+                  <div className="mt-3 flex justify-end">
+                    <Button className="rounded-full">댓글 작성</Button>
+                  </div>
+                </div>
               </div>
             </div>
           </Card>
