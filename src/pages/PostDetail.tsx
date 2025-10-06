@@ -71,14 +71,6 @@ const getStanceColor = (stance: string) => {
   }
 };
 
-interface Opinion {
-  id: number;
-  user: string;
-  avatar: string;
-  content: string;
-  votes: number;
-}
-
 interface Comment {
   id: number;
   user: string;
@@ -102,29 +94,14 @@ interface Comment {
 const PostDetail = () => {
   const { id } = useParams();
   const [openPerspectives, setOpenPerspectives] = useState<string[]>(["progressive"]);
-  const [opinions, setOpinions] = useState<Opinion[]>([
-    {
-      id: 1,
-      user: "민주시민",
-      avatar: "",
-      content: "이 사안은 방송의 독립성과 관련된 중요한 문제입니다. 양측의 주장을 모두 들어볼 필요가 있다고 생각합니다.",
-      votes: 142
-    },
-    {
-      id: 2,
-      user: "정책전문가",
-      avatar: "",
-      content: "법적 절차를 투명하게 진행하는 것이 가장 중요합니다. 정치적 해석보다는 법리적 판단이 우선되어야 합니다.",
-      votes: 89
-    },
-    {
-      id: 3,
-      user: "일반시민",
-      avatar: "",
-      content: "복잡한 문제지만 국민의 알 권리가 보장되는 방향으로 해결되길 바랍니다.",
-      votes: 56
-    }
-  ]);
+  
+  // Mock user data (로그인되어 있다고 가정)
+  const mockUser = {
+    age: 28,
+    gender: "여성",
+    occupation: "방송PD",
+    region: "서울"
+  };
 
   const [pollVotes, setPollVotes] = useState({
     support: 342,
@@ -175,22 +152,33 @@ const PostDetail = () => {
       empathy: 28,
       evidence: 31,
       replies: []
+    },
+    {
+      id: 3,
+      user: "정책전문가",
+      avatar: "",
+      content: "법적 절차를 투명하게 진행하는 것이 가장 중요합니다. 정치적 해석보다는 법리적 판단이 우선되어야 합니다.",
+      logic: 52,
+      empathy: 41,
+      evidence: 47,
+      replies: [
+        {
+          id: 103,
+          user: "미디어연구자",
+          avatar: "",
+          content: "통계와 연구 결과에 따르면 방송 독립성은 민주주의 지수와 직접적인 상관관계가 있습니다.",
+          type: "근거",
+          logic: 25,
+          empathy: 10,
+          evidence: 30
+        }
+      ]
     }
   ]);
 
   const togglePerspective = (stance: string) => {
     setOpenPerspectives((prev) =>
       prev.includes(stance) ? prev.filter((s) => s !== stance) : [...prev, stance]
-    );
-  };
-
-  const handleVote = (opinionId: number) => {
-    setOpinions(prev => 
-      prev.map(opinion => 
-        opinion.id === opinionId 
-          ? { ...opinion, votes: opinion.votes + 1 }
-          : opinion
-      ).sort((a, b) => b.votes - a.votes)
     );
   };
 
@@ -235,7 +223,14 @@ const PostDetail = () => {
     );
   };
 
-  const sortedOpinions = [...opinions].sort((a, b) => b.votes - a.votes);
+  // 댓글을 공감 + 논리력 점수로 정렬
+  const sortedComments = [...comments].sort((a, b) => {
+    const scoreA = a.logic + a.empathy;
+    const scoreB = b.logic + b.empathy;
+    return scoreB - scoreA;
+  });
+
+  const topComment = sortedComments[0]; // 대표의견
 
   return (
     <div className="min-h-screen bg-background">
@@ -321,18 +316,44 @@ const PostDetail = () => {
             </div>
           </div>
 
-          <Card className="mb-8 border-none bg-gradient-hero shadow-md rounded-2xl">
+          <Card className="mb-8 border border-border/50 bg-card shadow-sm rounded-3xl overflow-hidden">
             <div className="p-6">
-              <div className="flex items-start gap-3 text-white">
-                <Calculator className="h-6 w-6 flex-shrink-0" />
+              <div className="flex items-start gap-3 mb-4">
+                <div className="p-2 rounded-xl bg-primary/10">
+                  <Calculator className="h-6 w-6 text-primary" />
+                </div>
                 <div className="flex-1">
-                  <h3 className="mb-2 text-xl font-bold">영향 계산기</h3>
-                  <p className="mb-4 opacity-90">
-                    이 정책이 당신에게 미칠 영향을 확인해보세요
+                  <h3 className="text-xl font-bold text-foreground">나에게 미치는 영향</h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {mockUser.age}세 · {mockUser.gender} · {mockUser.occupation} · {mockUser.region}
                   </p>
-                  <Button variant="secondary" className="bg-white text-primary hover:bg-white/90 rounded-full">
-                    영향 계산하기
-                  </Button>
+                </div>
+              </div>
+              
+              <div className="space-y-4 bg-muted/30 rounded-2xl p-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center">
+                    <span className="text-red-500 font-bold">!</span>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-1">직접 영향: 매우 높음</h4>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      방송PD로서 방송통신위원회의 정책 결정은 업무 환경과 편집 독립성에 직접적인 영향을 미칩니다. 
+                      방송 제작 자율성과 콘텐츠 검열 가능성이 변화할 수 있습니다.
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-yellow-500/20 flex items-center justify-center">
+                    <span className="text-yellow-500 font-bold">!</span>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-1">간접 영향: 중간</h4>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      서울 거주 20대 여성으로서 미디어 접근성과 정보의 다양성에 영향을 받을 수 있습니다.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -438,118 +459,84 @@ const PostDetail = () => {
 
           <Separator className="my-8" />
 
-          <div className="mb-8">
-            <h2 className="mb-6 text-2xl font-bold text-foreground">💡 대표 의견</h2>
-            <div className="space-y-3">
-              {sortedOpinions.map((opinion) => (
-                <Card key={opinion.id} className="overflow-hidden border-none bg-card shadow-sm hover:shadow-md transition-shadow rounded-3xl">
-                  <div className="p-5">
-                    <div className="mb-4 flex items-start gap-3">
-                      <Avatar className="h-11 w-11">
-                        <AvatarImage src={opinion.avatar} />
-                        <AvatarFallback className="bg-gradient-hero text-white font-semibold">
-                          {opinion.user.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-foreground text-[15px]">{opinion.user}</p>
-                        <p className="text-foreground/90 mt-2 text-[15px] leading-relaxed">
-                          {opinion.content}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1 pl-14">
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => handleVote(opinion.id)}
-                        className="group h-8 hover:bg-transparent rounded-full px-2 -ml-2"
-                      >
-                        <Heart className="h-[18px] w-[18px] mr-1 group-hover:fill-red-500 group-hover:text-red-500 transition-all" />
-                        <span className="font-medium text-sm group-hover:text-red-500 transition-colors">{opinion.votes}</span>
-                      </Button>
-                      <Button variant="ghost" size="sm" className="h-8 hover:bg-transparent rounded-full px-2">
-                        <MessageCircle className="h-[18px] w-[18px] mr-1" />
-                        <span className="text-sm">답글</span>
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </div>
-
-          <Card className="border-none bg-card shadow-sm rounded-2xl">
+          <Card className="border-none bg-card shadow-sm rounded-3xl">
             <div className="p-6">
               <h3 className="mb-6 text-xl font-bold text-foreground flex items-center gap-2">
                 <MessageCircle className="h-5 w-5" />
-                댓글 ({comments.length})
+                의견 ({comments.length})
               </h3>
 
-              <div className="space-y-4 mb-6">
-                {comments.map((comment) => (
-                  <div key={comment.id} className="border-b pb-4 last:border-b-0">
-                    <div className="flex gap-3 mb-3">
-                      <Avatar className="h-10 w-10">
+              <div className="space-y-6 mb-6">
+                {sortedComments.map((comment) => (
+                  <div key={comment.id} className="pb-6 last:pb-0">
+                    <div className="flex gap-3">
+                      <Avatar className="h-11 w-11">
                         <AvatarImage src={comment.avatar} />
-                        <AvatarFallback className="bg-gradient-hero text-white">
+                        <AvatarFallback className="bg-gradient-hero text-white font-semibold">
                           {comment.user.charAt(0)}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1">
-                        <p className="font-semibold text-foreground text-sm">{comment.user}</p>
-                        <p className="text-foreground/90 mt-2 text-sm leading-relaxed">
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="font-semibold text-foreground text-[15px]">{comment.user}</p>
+                          {comment.id === topComment.id && (
+                            <Badge className="bg-primary/20 text-primary border-primary/30 text-xs px-2 py-0">
+                              대표의견
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-foreground/90 mt-2 text-[15px] leading-relaxed">
                           {comment.content}
                         </p>
-                        <div className="flex items-center gap-2 mt-3">
+                        <div className="flex items-center gap-1 mt-3 -ml-2">
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => handleCommentReaction(comment.id, "logic")}
-                            className="h-7 rounded-full px-2 hover:bg-blue-500/10"
+                            className="h-8 rounded-full px-3 hover:bg-transparent group"
                           >
-                            <Lightbulb className="h-4 w-4 mr-1 text-blue-500" />
-                            <span className="text-xs">논리 {comment.logic}</span>
+                            <Lightbulb className="h-[17px] w-[17px] mr-1.5 text-blue-500 group-hover:scale-110 transition-transform" />
+                            <span className="text-[13px] text-muted-foreground group-hover:text-blue-500 transition-colors font-medium">{comment.logic}</span>
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => handleCommentReaction(comment.id, "empathy")}
-                            className="h-7 rounded-full px-2 hover:bg-pink-500/10"
+                            className="h-8 rounded-full px-3 hover:bg-transparent group"
                           >
-                            <Heart className="h-4 w-4 mr-1 text-pink-500" />
-                            <span className="text-xs">공감 {comment.empathy}</span>
+                            <Heart className="h-[17px] w-[17px] mr-1.5 text-pink-500 group-hover:scale-110 group-hover:fill-pink-500 transition-all" />
+                            <span className="text-[13px] text-muted-foreground group-hover:text-pink-500 transition-colors font-medium">{comment.empathy}</span>
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => handleCommentReaction(comment.id, "evidence")}
-                            className="h-7 rounded-full px-2 hover:bg-green-500/10"
+                            className="h-8 rounded-full px-3 hover:bg-transparent group"
                           >
-                            <Shield className="h-4 w-4 mr-1 text-green-500" />
-                            <span className="text-xs">근거 {comment.evidence}</span>
+                            <Shield className="h-[17px] w-[17px] mr-1.5 text-green-500 group-hover:scale-110 transition-transform" />
+                            <span className="text-[13px] text-muted-foreground group-hover:text-green-500 transition-colors font-medium">{comment.evidence}</span>
                           </Button>
-                          <Button variant="ghost" size="sm" className="h-7 rounded-full px-2 ml-2">
-                            <MessageCircle className="h-4 w-4 mr-1" />
-                            <span className="text-xs">답글</span>
+                          <Button variant="ghost" size="sm" className="h-8 rounded-full px-3 hover:bg-transparent group">
+                            <MessageCircle className="h-[17px] w-[17px] mr-1.5 text-muted-foreground group-hover:text-foreground transition-colors" />
+                            <span className="text-[13px] text-muted-foreground group-hover:text-foreground transition-colors">답글</span>
                           </Button>
                         </div>
 
                         {comment.replies.length > 0 && (
-                          <div className="mt-4 space-y-3 pl-4 border-l-2 border-muted">
+                          <div className="mt-4 space-y-4 pl-3 ml-8 border-l border-border/50">
                             {comment.replies.map((reply) => (
                               <div key={reply.id} className="flex gap-3">
-                                <Avatar className="h-8 w-8">
+                                <Avatar className="h-9 w-9">
                                   <AvatarImage src={reply.avatar} />
-                                  <AvatarFallback className="bg-gradient-hero text-white text-xs">
+                                  <AvatarFallback className="bg-gradient-hero text-white text-xs font-semibold">
                                     {reply.user.charAt(0)}
                                   </AvatarFallback>
                                 </Avatar>
                                 <div className="flex-1">
                                   <div className="flex items-center gap-2">
-                                    <p className="font-semibold text-foreground text-sm">{reply.user}</p>
+                                    <p className="font-semibold text-foreground text-[14px]">{reply.user}</p>
                                     <Badge
-                                      className={`text-xs px-2 py-0 ${
+                                      className={`text-[11px] px-2 py-0 ${
                                         reply.type === "반론"
                                           ? "bg-red-500/20 text-red-500 border-red-500/30"
                                           : reply.type === "뒷받침"
@@ -560,36 +547,36 @@ const PostDetail = () => {
                                       {reply.type}
                                     </Badge>
                                   </div>
-                                  <p className="text-foreground/90 mt-1 text-sm leading-relaxed">
+                                  <p className="text-foreground/90 mt-1.5 text-[14px] leading-relaxed">
                                     {reply.content}
                                   </p>
-                                  <div className="flex items-center gap-2 mt-2">
+                                  <div className="flex items-center gap-1 mt-2.5 -ml-2">
                                     <Button
                                       variant="ghost"
                                       size="sm"
                                       onClick={() => handleReplyReaction(comment.id, reply.id, "logic")}
-                                      className="h-6 rounded-full px-2 hover:bg-blue-500/10"
+                                      className="h-7 rounded-full px-2.5 hover:bg-transparent group"
                                     >
-                                      <Lightbulb className="h-3 w-3 mr-1 text-blue-500" />
-                                      <span className="text-xs">{reply.logic}</span>
+                                      <Lightbulb className="h-[15px] w-[15px] mr-1 text-blue-500 group-hover:scale-110 transition-transform" />
+                                      <span className="text-[12px] text-muted-foreground group-hover:text-blue-500 transition-colors">{reply.logic}</span>
                                     </Button>
                                     <Button
                                       variant="ghost"
                                       size="sm"
                                       onClick={() => handleReplyReaction(comment.id, reply.id, "empathy")}
-                                      className="h-6 rounded-full px-2 hover:bg-pink-500/10"
+                                      className="h-7 rounded-full px-2.5 hover:bg-transparent group"
                                     >
-                                      <Heart className="h-3 w-3 mr-1 text-pink-500" />
-                                      <span className="text-xs">{reply.empathy}</span>
+                                      <Heart className="h-[15px] w-[15px] mr-1 text-pink-500 group-hover:scale-110 group-hover:fill-pink-500 transition-all" />
+                                      <span className="text-[12px] text-muted-foreground group-hover:text-pink-500 transition-colors">{reply.empathy}</span>
                                     </Button>
                                     <Button
                                       variant="ghost"
                                       size="sm"
                                       onClick={() => handleReplyReaction(comment.id, reply.id, "evidence")}
-                                      className="h-6 rounded-full px-2 hover:bg-green-500/10"
+                                      className="h-7 rounded-full px-2.5 hover:bg-transparent group"
                                     >
-                                      <Shield className="h-3 w-3 mr-1 text-green-500" />
-                                      <span className="text-xs">{reply.evidence}</span>
+                                      <Shield className="h-[15px] w-[15px] mr-1 text-green-500 group-hover:scale-110 transition-transform" />
+                                      <span className="text-[12px] text-muted-foreground group-hover:text-green-500 transition-colors">{reply.evidence}</span>
                                     </Button>
                                   </div>
                                 </div>
@@ -603,20 +590,20 @@ const PostDetail = () => {
                 ))}
               </div>
 
-              <div className="flex gap-3">
-                <Avatar className="h-10 w-10">
-                  <AvatarFallback className="bg-gradient-hero text-white">
+              <div className="flex gap-3 pt-2">
+                <Avatar className="h-11 w-11">
+                  <AvatarFallback className="bg-gradient-hero text-white font-semibold">
                     나
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
                   <textarea
-                    className="w-full resize-none rounded-2xl border bg-muted/30 p-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    className="w-full resize-none rounded-2xl border border-border bg-background p-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/30 transition-all"
                     rows={3}
                     placeholder="의견을 남겨주세요..."
                   />
                   <div className="mt-3 flex justify-end">
-                    <Button className="rounded-full">댓글 작성</Button>
+                    <Button className="rounded-full px-6">의견 작성</Button>
                   </div>
                 </div>
               </div>
