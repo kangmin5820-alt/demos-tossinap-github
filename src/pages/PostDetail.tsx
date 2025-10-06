@@ -19,6 +19,9 @@ import {
   TrendingUp,
   Calculator,
   Heart,
+  Lightbulb,
+  Target,
+  Shield,
 } from "lucide-react";
 
 interface Perspective {
@@ -76,6 +79,26 @@ interface Opinion {
   votes: number;
 }
 
+interface Comment {
+  id: number;
+  user: string;
+  avatar: string;
+  content: string;
+  logic: number;
+  empathy: number;
+  evidence: number;
+  replies: Array<{
+    id: number;
+    user: string;
+    avatar: string;
+    content: string;
+    type: "반론" | "뒷받침" | "근거";
+    logic: number;
+    empathy: number;
+    evidence: number;
+  }>;
+}
+
 const PostDetail = () => {
   const { id } = useParams();
   const [openPerspectives, setOpenPerspectives] = useState<string[]>(["progressive"]);
@@ -103,6 +126,58 @@ const PostDetail = () => {
     }
   ]);
 
+  const [pollVotes, setPollVotes] = useState({
+    support: 342,
+    oppose: 289,
+    neutral: 156
+  });
+
+  const [userVote, setUserVote] = useState<"support" | "oppose" | "neutral" | null>(null);
+
+  const [comments, setComments] = useState<Comment[]>([
+    {
+      id: 1,
+      user: "김정치",
+      avatar: "",
+      content: "이 사안은 단순히 개인의 문제가 아니라 방송 독립성 전체와 관련된 구조적 문제입니다. 역사적으로 방송 장악 시도는 민주주의를 후퇴시켰습니다.",
+      logic: 45,
+      empathy: 32,
+      evidence: 38,
+      replies: [
+        {
+          id: 101,
+          user: "박민주",
+          avatar: "",
+          content: "동의합니다. 과거 사례를 보면 방송 독립성이 침해될 때마다 언론의 자유가 위축되었죠.",
+          type: "뒷받침",
+          logic: 12,
+          empathy: 8,
+          evidence: 15
+        },
+        {
+          id: 102,
+          user: "최보수",
+          avatar: "",
+          content: "하지만 현재 상황은 과거와 다릅니다. 법적 절차를 따르는 것과 방송 장악은 별개 문제입니다.",
+          type: "반론",
+          logic: 18,
+          empathy: 5,
+          evidence: 10
+        }
+      ]
+    },
+    {
+      id: 2,
+      user: "이중립",
+      avatar: "",
+      content: "양측 모두 감정적 대응보다는 객관적 증거에 기반한 논의가 필요합니다. 법원의 판단을 기다려야 합니다.",
+      logic: 38,
+      empathy: 28,
+      evidence: 31,
+      replies: []
+    }
+  ]);
+
   const togglePerspective = (stance: string) => {
     setOpenPerspectives((prev) =>
       prev.includes(stance) ? prev.filter((s) => s !== stance) : [...prev, stance]
@@ -119,6 +194,47 @@ const PostDetail = () => {
     );
   };
 
+  const handlePollVote = (option: "support" | "oppose" | "neutral") => {
+    if (userVote) return; // 이미 투표함
+    setPollVotes(prev => ({
+      ...prev,
+      [option]: prev[option] + 1
+    }));
+    setUserVote(option);
+  };
+
+  const totalPollVotes = pollVotes.support + pollVotes.oppose + pollVotes.neutral;
+  const supportPercent = ((pollVotes.support / totalPollVotes) * 100).toFixed(1);
+  const opposePercent = ((pollVotes.oppose / totalPollVotes) * 100).toFixed(1);
+  const neutralPercent = ((pollVotes.neutral / totalPollVotes) * 100).toFixed(1);
+
+  const handleCommentReaction = (commentId: number, type: "logic" | "empathy" | "evidence") => {
+    setComments(prev =>
+      prev.map(comment =>
+        comment.id === commentId
+          ? { ...comment, [type]: comment[type] + 1 }
+          : comment
+      )
+    );
+  };
+
+  const handleReplyReaction = (commentId: number, replyId: number, type: "logic" | "empathy" | "evidence") => {
+    setComments(prev =>
+      prev.map(comment =>
+        comment.id === commentId
+          ? {
+              ...comment,
+              replies: comment.replies.map(reply =>
+                reply.id === replyId
+                  ? { ...reply, [type]: reply[type] + 1 }
+                  : reply
+              )
+            }
+          : comment
+      )
+    );
+  };
+
   const sortedOpinions = [...opinions].sort((a, b) => b.votes - a.votes);
 
   return (
@@ -130,7 +246,7 @@ const PostDetail = () => {
           <div className="mb-6">
             <Badge className="mb-4">데모스 공식</Badge>
             <h1 className="mb-4 text-4xl font-bold leading-tight text-foreground">
-              이진숙 체포적부심사...대통령 예능 출연 공방
+              이진숙 체포적부심사에 대한 논쟁
             </h1>
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
               <span>2024년 3월 15일</span>
@@ -225,6 +341,104 @@ const PostDetail = () => {
           <Separator className="my-8" />
 
           <div className="mb-8">
+            <h2 className="mb-6 text-2xl font-bold text-foreground">📊 투표하기</h2>
+            <Card className="border-none bg-card shadow-sm rounded-2xl overflow-hidden">
+              <div className="p-6">
+                <p className="mb-6 text-lg text-foreground">이 사안에 대한 당신의 입장은?</p>
+                <div className="grid gap-3 mb-6">
+                  <button
+                    onClick={() => handlePollVote("support")}
+                    disabled={userVote !== null}
+                    className={`relative overflow-hidden rounded-xl border-2 p-4 text-left transition-all ${
+                      userVote === "support"
+                        ? "border-demos-blue bg-demos-blue/10"
+                        : userVote
+                        ? "border-muted opacity-50"
+                        : "border-muted hover:border-demos-blue hover:bg-demos-blue/5"
+                    } ${userVote ? "cursor-not-allowed" : "cursor-pointer"}`}
+                  >
+                    <div className="relative z-10">
+                      <p className="font-semibold text-foreground">찬성</p>
+                      {userVote && (
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {pollVotes.support}표 ({supportPercent}%)
+                        </p>
+                      )}
+                    </div>
+                    {userVote && (
+                      <div
+                        className="absolute left-0 top-0 h-full bg-demos-blue/20 transition-all"
+                        style={{ width: `${supportPercent}%` }}
+                      />
+                    )}
+                  </button>
+
+                  <button
+                    onClick={() => handlePollVote("oppose")}
+                    disabled={userVote !== null}
+                    className={`relative overflow-hidden rounded-xl border-2 p-4 text-left transition-all ${
+                      userVote === "oppose"
+                        ? "border-demos-red bg-demos-red/10"
+                        : userVote
+                        ? "border-muted opacity-50"
+                        : "border-muted hover:border-demos-red hover:bg-demos-red/5"
+                    } ${userVote ? "cursor-not-allowed" : "cursor-pointer"}`}
+                  >
+                    <div className="relative z-10">
+                      <p className="font-semibold text-foreground">반대</p>
+                      {userVote && (
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {pollVotes.oppose}표 ({opposePercent}%)
+                        </p>
+                      )}
+                    </div>
+                    {userVote && (
+                      <div
+                        className="absolute left-0 top-0 h-full bg-demos-red/20 transition-all"
+                        style={{ width: `${opposePercent}%` }}
+                      />
+                    )}
+                  </button>
+
+                  <button
+                    onClick={() => handlePollVote("neutral")}
+                    disabled={userVote !== null}
+                    className={`relative overflow-hidden rounded-xl border-2 p-4 text-left transition-all ${
+                      userVote === "neutral"
+                        ? "border-demos-neutral bg-demos-neutral/10"
+                        : userVote
+                        ? "border-muted opacity-50"
+                        : "border-muted hover:border-demos-neutral hover:bg-demos-neutral/5"
+                    } ${userVote ? "cursor-not-allowed" : "cursor-pointer"}`}
+                  >
+                    <div className="relative z-10">
+                      <p className="font-semibold text-foreground">중립</p>
+                      {userVote && (
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {pollVotes.neutral}표 ({neutralPercent}%)
+                        </p>
+                      )}
+                    </div>
+                    {userVote && (
+                      <div
+                        className="absolute left-0 top-0 h-full bg-demos-neutral/20 transition-all"
+                        style={{ width: `${neutralPercent}%` }}
+                      />
+                    )}
+                  </button>
+                </div>
+                {userVote && (
+                  <p className="text-sm text-muted-foreground text-center">
+                    총 {totalPollVotes}명이 투표했습니다
+                  </p>
+                )}
+              </div>
+            </Card>
+          </div>
+
+          <Separator className="my-8" />
+
+          <div className="mb-8">
             <h2 className="mb-6 text-2xl font-bold text-foreground">💡 대표 의견</h2>
             <div className="space-y-3">
               {sortedOpinions.map((opinion) => (
@@ -267,10 +481,128 @@ const PostDetail = () => {
 
           <Card className="border-none bg-card shadow-sm rounded-2xl">
             <div className="p-6">
-              <h3 className="mb-4 text-xl font-bold text-foreground flex items-center gap-2">
+              <h3 className="mb-6 text-xl font-bold text-foreground flex items-center gap-2">
                 <MessageCircle className="h-5 w-5" />
-                댓글
+                댓글 ({comments.length})
               </h3>
+
+              <div className="space-y-4 mb-6">
+                {comments.map((comment) => (
+                  <div key={comment.id} className="border-b pb-4 last:border-b-0">
+                    <div className="flex gap-3 mb-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={comment.avatar} />
+                        <AvatarFallback className="bg-gradient-hero text-white">
+                          {comment.user.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <p className="font-semibold text-foreground text-sm">{comment.user}</p>
+                        <p className="text-foreground/90 mt-2 text-sm leading-relaxed">
+                          {comment.content}
+                        </p>
+                        <div className="flex items-center gap-2 mt-3">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleCommentReaction(comment.id, "logic")}
+                            className="h-7 rounded-full px-2 hover:bg-blue-500/10"
+                          >
+                            <Lightbulb className="h-4 w-4 mr-1 text-blue-500" />
+                            <span className="text-xs">논리 {comment.logic}</span>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleCommentReaction(comment.id, "empathy")}
+                            className="h-7 rounded-full px-2 hover:bg-pink-500/10"
+                          >
+                            <Heart className="h-4 w-4 mr-1 text-pink-500" />
+                            <span className="text-xs">공감 {comment.empathy}</span>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleCommentReaction(comment.id, "evidence")}
+                            className="h-7 rounded-full px-2 hover:bg-green-500/10"
+                          >
+                            <Shield className="h-4 w-4 mr-1 text-green-500" />
+                            <span className="text-xs">근거 {comment.evidence}</span>
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-7 rounded-full px-2 ml-2">
+                            <MessageCircle className="h-4 w-4 mr-1" />
+                            <span className="text-xs">답글</span>
+                          </Button>
+                        </div>
+
+                        {comment.replies.length > 0 && (
+                          <div className="mt-4 space-y-3 pl-4 border-l-2 border-muted">
+                            {comment.replies.map((reply) => (
+                              <div key={reply.id} className="flex gap-3">
+                                <Avatar className="h-8 w-8">
+                                  <AvatarImage src={reply.avatar} />
+                                  <AvatarFallback className="bg-gradient-hero text-white text-xs">
+                                    {reply.user.charAt(0)}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2">
+                                    <p className="font-semibold text-foreground text-sm">{reply.user}</p>
+                                    <Badge
+                                      className={`text-xs px-2 py-0 ${
+                                        reply.type === "반론"
+                                          ? "bg-red-500/20 text-red-500 border-red-500/30"
+                                          : reply.type === "뒷받침"
+                                          ? "bg-blue-500/20 text-blue-500 border-blue-500/30"
+                                          : "bg-green-500/20 text-green-500 border-green-500/30"
+                                      }`}
+                                    >
+                                      {reply.type}
+                                    </Badge>
+                                  </div>
+                                  <p className="text-foreground/90 mt-1 text-sm leading-relaxed">
+                                    {reply.content}
+                                  </p>
+                                  <div className="flex items-center gap-2 mt-2">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleReplyReaction(comment.id, reply.id, "logic")}
+                                      className="h-6 rounded-full px-2 hover:bg-blue-500/10"
+                                    >
+                                      <Lightbulb className="h-3 w-3 mr-1 text-blue-500" />
+                                      <span className="text-xs">{reply.logic}</span>
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleReplyReaction(comment.id, reply.id, "empathy")}
+                                      className="h-6 rounded-full px-2 hover:bg-pink-500/10"
+                                    >
+                                      <Heart className="h-3 w-3 mr-1 text-pink-500" />
+                                      <span className="text-xs">{reply.empathy}</span>
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleReplyReaction(comment.id, reply.id, "evidence")}
+                                      className="h-6 rounded-full px-2 hover:bg-green-500/10"
+                                    >
+                                      <Shield className="h-3 w-3 mr-1 text-green-500" />
+                                      <span className="text-xs">{reply.evidence}</span>
+                                    </Button>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
               <div className="flex gap-3">
                 <Avatar className="h-10 w-10">
                   <AvatarFallback className="bg-gradient-hero text-white">
