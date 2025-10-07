@@ -8,50 +8,50 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 210 20% 98%;
-    --foreground: 215 25% 15%;
+    --background: 0 0% 3%;
+    --foreground: 0 0% 95%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 215 25% 15%;
+    --card: 0 0% 6%;
+    --card-foreground: 0 0% 95%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 15%;
+    --popover: 0 0% 6%;
+    --popover-foreground: 0 0% 95%;
 
-    --primary: 217 91% 35%;
+    --primary: 217 91% 55%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 16% 93%;
-    --secondary-foreground: 215 25% 15%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 95%;
 
-    --muted: 210 16% 96%;
-    --muted-foreground: 215 15% 50%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 55%;
 
-    --accent: 217 91% 60%;
+    --accent: 217 91% 55%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 72% 51%;
+    --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 214 20% 88%;
-    --input: 214 20% 88%;
-    --ring: 217 91% 35%;
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 217 91% 55%;
 
     --radius: 0.75rem;
 
     /* Demos specific colors */
-    --demos-blue: 217 91% 35%;
-    --demos-blue-light: 217 91% 60%;
-    --demos-red: 0 72% 51%;
+    --demos-blue: 217 91% 55%;
+    --demos-blue-light: 217 91% 70%;
+    --demos-red: 0 72% 55%;
     --demos-red-light: 0 72% 70%;
-    --demos-neutral: 210 15% 50%;
+    --demos-neutral: 0 0% 50%;
     
     /* Gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(217 91% 35%) 0%, hsl(217 91% 50%) 100%);
-    --gradient-card: linear-gradient(to bottom, hsl(0 0% 100%) 0%, hsl(210 20% 99%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(217 91% 35%) 0%, hsl(217 91% 55%) 100%);
+    --gradient-card: linear-gradient(to bottom, hsl(0 0% 6%) 0%, hsl(0 0% 8%) 100%);
     
     /* Shadows */
-    --shadow-card: 0 2px 8px hsl(215 25% 15% / 0.08);
-    --shadow-card-hover: 0 4px 16px hsl(215 25% 15% / 0.12);
+    --shadow-card: 0 1px 3px hsl(0 0% 0% / 0.5);
+    --shadow-card-hover: 0 2px 8px hsl(0 0% 0% / 0.6);
     
     /* Transitions */
     --transition-base: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -107,10 +107,5 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
-  }
-  
-  /* Force dark mode */
-  html {
-    @apply dark;
   }
 }

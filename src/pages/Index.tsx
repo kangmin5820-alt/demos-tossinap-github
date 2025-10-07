@@ -22,7 +22,15 @@ interface Post {
   likes?: number;
   type?: "user" | "official";
   attachments?: {
-    poll?: { question: string; options: string[] };
+    poll?: {
+      question: string;
+      options: Array<{
+        text: string;
+        votes: number;
+        image?: string;
+      }>;
+      totalVotes: number;
+    };
     links?: string[];
   };
 }
@@ -54,8 +62,12 @@ const mockPosts: Post[] = [
     likes: 1247,
     attachments: {
       poll: {
-        question: "의대 증원, 당신의 입장은?",
-        options: ["찬성", "반대", "조건부 찬성"]
+        question: "의대 증원 정책, 지역 의료가 개선될까요?",
+        options: [
+          { text: "개선된다", votes: 1823 },
+          { text: "악화된다", votes: 3421 }
+        ],
+        totalVotes: 5244
       }
     }
   },
@@ -83,6 +95,14 @@ const mockPosts: Post[] = [
     type: "user",
     likes: 923,
     attachments: {
+      poll: {
+        question: "여론조사 결과를 신뢰하시나요?",
+        options: [
+          { text: "신뢰한다", votes: 487 },
+          { text: "신뢰하지 않는다", votes: 2341 }
+        ],
+        totalVotes: 2828
+      },
       links: [
         "https://n.news.naver.com/mnews/article/079/0004073229"
       ]

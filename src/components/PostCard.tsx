@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { MessageCircle, Heart, User } from "lucide-react";
 
@@ -14,6 +15,18 @@ interface PostCardProps {
   isOfficial?: boolean;
   likes?: number;
   type?: "user" | "official";
+  attachments?: {
+    poll?: {
+      question: string;
+      options: Array<{
+        text: string;
+        votes: number;
+        image?: string;
+      }>;
+      totalVotes: number;
+    };
+    links?: string[];
+  };
 }
 
 const PostCard = ({
@@ -27,6 +40,7 @@ const PostCard = ({
   isOfficial = true,
   likes,
   type = "official",
+  attachments,
 }: PostCardProps) => {
   return (
     <Link to={`/post/${id}`}>
@@ -58,6 +72,35 @@ const PostCard = ({
           <p className="mb-4 line-clamp-2 text-sm text-muted-foreground leading-relaxed">
             {summary}
           </p>
+
+          {attachments?.poll && (
+            <div className="mb-4 bg-muted/20 rounded-xl p-4 border border-border/50">
+              <p className="text-sm font-medium text-foreground mb-3">{attachments.poll.question}</p>
+              <div className="space-y-2">
+                {attachments.poll.options.map((option, idx) => {
+                  const percentage = ((option.votes / attachments.poll!.totalVotes) * 100).toFixed(0);
+                  return (
+                    <div
+                      key={idx}
+                      className="relative overflow-hidden rounded-lg border border-border bg-background p-3"
+                    >
+                      <div
+                        className="absolute left-0 top-0 h-full bg-primary/10 transition-all"
+                        style={{ width: `${percentage}%` }}
+                      />
+                      <div className="relative z-10 flex items-center justify-between">
+                        <span className="text-sm font-medium text-foreground">{option.text}</span>
+                        <span className="text-sm font-bold text-primary">{percentage}%</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-muted-foreground mt-3 text-center">
+                {attachments.poll.totalVotes.toLocaleString()}명 참여
+              </p>
+            </div>
+          )}
 
           <div className="flex items-center gap-4 text-sm text-muted-foreground pt-2 border-t border-border/50">
             <div className="flex items-center gap-1.5">
