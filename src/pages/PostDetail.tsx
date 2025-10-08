@@ -8,12 +8,23 @@ import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
   ThumbsUp,
   MessageCircle,
   Eye,
-  Heart,
   Send,
   ChevronLeft,
+  ChevronDown,
+  Lightbulb,
+  Target,
+  Shield,
+  Smile,
+  Frown,
+  TrendingUp,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -47,6 +58,43 @@ interface Comment {
   replies?: Comment[];
 }
 
+interface ExpertOpinion {
+  id: string;
+  name: string;
+  affiliation: string;
+  stance: "긍정적" | "부정적" | "중립";
+  opinion: string;
+  highlight: string;
+}
+
+// 샘플 전문가 의견 데이터
+const mockExpertOpinions: ExpertOpinion[] = [
+  {
+    id: "1",
+    name: "김정치",
+    affiliation: "한국정치학회 교수",
+    stance: "긍정적",
+    opinion: "이번 정책은 장기적인 관점에서 볼 때 긍정적인 효과를 가져올 것으로 예상됩니다. 특히 젊은 세대의 참여를 독려하는 측면에서 의미가 있습니다.",
+    highlight: "젊은 세대의 정치 참여 증가 기대"
+  },
+  {
+    id: "2",
+    name: "이경제",
+    affiliation: "경제연구소 선임연구원",
+    stance: "부정적",
+    opinion: "경제적 측면에서 볼 때 예산 낭비의 우려가 있습니다. 실효성 있는 정책 집행을 위한 구체적인 로드맵이 부족합니다.",
+    highlight: "예산 효율성 문제 제기"
+  },
+  {
+    id: "3",
+    name: "박사회",
+    affiliation: "사회복지학과 교수",
+    stance: "중립",
+    opinion: "정책의 취지는 좋으나 실행 과정에서 발생할 수 있는 부작용에 대한 대비가 필요합니다. 단계적 접근이 바람직합니다.",
+    highlight: "단계적 접근 필요성 강조"
+  }
+];
+
 const PostDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -59,6 +107,8 @@ const PostDetail = () => {
   const [user, setUser] = useState<any>(null);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState("");
+  const [showExperts, setShowExperts] = useState(false);
+  const [topComments, setTopComments] = useState<Comment[]>([]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -128,6 +178,10 @@ const PostDetail = () => {
           })
         );
         setComments(commentsWithReplies);
+        
+        // 대표 의견 (좋아요 많은 순 3개)
+        const sortedComments = [...commentsWithReplies].sort((a, b) => b.likes - a.likes);
+        setTopComments(sortedComments.slice(0, 3));
       }
     } catch (error) {
       console.error('Error fetching post:', error);
@@ -229,26 +283,29 @@ const PostDetail = () => {
     }
   };
 
-  const handleLikePost = async () => {
+  const handleLikeComment = async (commentId: string) => {
     if (!user) {
       toast.error('로그인이 필요합니다');
       return;
     }
 
-    if (!post) return;
-
     try {
+      const comment = comments.find(c => c.id === commentId) || 
+                      comments.flatMap(c => c.replies || []).find(r => r.id === commentId);
+      
+      if (!comment) return;
+
       const { error } = await supabase
-        .from('posts')
-        .update({ likes: post.likes + 1 })
-        .eq('id', post.id);
+        .from('comments')
+        .update({ likes: comment.likes + 1 })
+        .eq('id', commentId);
 
       if (error) throw error;
 
-      setPost({ ...post, likes: post.likes + 1 });
+      fetchPostDetail();
       toast.success('좋아요를 눌렀습니다');
     } catch (error) {
-      console.error('Error liking post:', error);
+      console.error('Error liking comment:', error);
       toast.error('좋아요에 실패했습니다');
     }
   };
@@ -261,6 +318,28 @@ const PostDetail = () => {
     if (diffInMinutes < 60) return `${diffInMinutes}분 전`;
     if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}시간 전`;
     return `${Math.floor(diffInMinutes / 1440)}일 전`;
+  };
+
+  const getStanceIcon = (stance: string) => {
+    switch (stance) {
+      case "긍정적":
+        return <Smile className="h-4 w-4 text-green-500" />;
+      case "부정적":
+        return <Frown className="h-4 w-4 text-red-500" />;
+      default:
+        return <Shield className="h-4 w-4 text-yellow-500" />;
+    }
+  };
+
+  const getStanceColor = (stance: string) => {
+    switch (stance) {
+      case "긍정적":
+        return "bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800";
+      case "부정적":
+        return "bg-red-50 border-red-200 dark:bg-red-950 dark:border-red-800";
+      default:
+        return "bg-yellow-50 border-yellow-200 dark:bg-yellow-950 dark:border-yellow-800";
+    }
   };
 
   if (loading) {
@@ -304,6 +383,16 @@ const PostDetail = () => {
           목록으로
         </Button>
 
+        {/* DEMOS 제목 섹션 */}
+        <div className="mb-6 text-center">
+          <h1 className="text-4xl font-bold text-primary mb-2">
+            DEMOS
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            다양한 관점으로 바라보는 민주주의 플랫폼
+          </p>
+        </div>
+
         {/* 게시물 헤더 */}
         <Card className="p-6 mb-6">
           <div className="flex items-start justify-between mb-4">
@@ -316,7 +405,7 @@ const PostDetail = () => {
                 )}
                 <Badge variant="outline">{post.category}</Badge>
               </div>
-              <h1 className="text-2xl font-bold mb-2">{post.title || '제목 없음'}</h1>
+              <h2 className="text-2xl font-bold mb-2">{post.title || '제목 없음'}</h2>
               <p className="text-muted-foreground text-sm">
                 {getTimeAgo(post.created_at)}
               </p>
@@ -345,23 +434,15 @@ const PostDetail = () => {
               <span>{comments.length}</span>
             </div>
           </div>
-
-          <Separator className="my-4" />
-
-          <Button
-            variant="outline"
-            onClick={handleLikePost}
-            className="w-full gap-2"
-          >
-            <Heart className="h-4 w-4" />
-            좋아요
-          </Button>
         </Card>
 
         {/* 투표 섹션 */}
         {pollOptions.length > 0 && (
           <Card className="p-6 mb-6">
-            <h2 className="text-lg font-semibold mb-4">이 사안에 대한 당신의 입장은?</h2>
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <Target className="h-5 w-5 text-primary" />
+              이 사안에 대한 당신의 입장은?
+            </h3>
             <div className="space-y-3">
               {pollOptions.map((option) => {
                 const percentage = totalVotes > 0 ? (option.votes / totalVotes) * 100 : 0;
@@ -395,11 +476,84 @@ const PostDetail = () => {
           </Card>
         )}
 
+        {/* 전문가 의견 섹션 */}
+        {post.is_official && (
+          <Card className="p-6 mb-6">
+            <Collapsible open={showExperts} onOpenChange={setShowExperts}>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" className="w-full justify-between p-4 h-auto">
+                  <div className="flex items-center gap-2">
+                    <Lightbulb className="h-5 w-5 text-primary" />
+                    <span className="text-lg font-semibold">다양한 관점의 목소리</span>
+                  </div>
+                  <ChevronDown className={`h-5 w-5 transition-transform ${showExperts ? 'rotate-180' : ''}`} />
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-4">
+                <div className="space-y-4">
+                  {mockExpertOpinions.map((expert) => (
+                    <Card key={expert.id} className={`p-4 border ${getStanceColor(expert.stance)}`}>
+                      <div className="flex items-start gap-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarFallback>{expert.name[0]}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-semibold">{expert.name}</span>
+                            {getStanceIcon(expert.stance)}
+                          </div>
+                          <p className="text-sm text-muted-foreground mb-2">{expert.affiliation}</p>
+                          <div className="bg-background/50 p-3 rounded-lg mb-2">
+                            <p className="text-sm font-medium text-primary mb-1">핵심 포인트</p>
+                            <p className="text-sm">{expert.highlight}</p>
+                          </div>
+                          <p className="text-sm">{expert.opinion}</p>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          </Card>
+        )}
+
+        {/* 대표 의견 섹션 */}
+        {topComments.length > 0 && (
+          <Card className="p-6 mb-6">
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-primary" />
+              대표 의견
+            </h3>
+            <div className="space-y-4">
+              {topComments.map((comment, index) => (
+                <div key={comment.id} className="flex gap-3 p-3 bg-muted/50 rounded-lg">
+                  <div className="flex-shrink-0">
+                    <Badge variant="secondary" className="rounded-full w-8 h-8 flex items-center justify-center">
+                      {index + 1}
+                    </Badge>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm mb-2">{comment.content}</p>
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                      <span>{getTimeAgo(comment.created_at)}</span>
+                      <span className="flex items-center gap-1">
+                        <ThumbsUp className="h-3 w-3" />
+                        {comment.likes}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
+
         {/* 댓글 섹션 */}
         <Card className="p-6">
-          <h2 className="text-lg font-semibold mb-4">
+          <h3 className="text-lg font-semibold mb-4">
             댓글 {comments.length}개
-          </h2>
+          </h3>
 
           {/* 댓글 작성 */}
           <div className="mb-6">
@@ -436,7 +590,10 @@ const PostDetail = () => {
                     </div>
                     <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
                       <span>{getTimeAgo(comment.created_at)}</span>
-                      <button className="hover:text-foreground flex items-center gap-1">
+                      <button 
+                        onClick={() => handleLikeComment(comment.id)}
+                        className="hover:text-foreground flex items-center gap-1"
+                      >
                         <ThumbsUp className="h-3 w-3" />
                         <span>{comment.likes}</span>
                       </button>
@@ -493,7 +650,10 @@ const PostDetail = () => {
                               </div>
                               <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
                                 <span>{getTimeAgo(reply.created_at)}</span>
-                                <button className="hover:text-foreground flex items-center gap-1">
+                                <button 
+                                  onClick={() => handleLikeComment(reply.id)}
+                                  className="hover:text-foreground flex items-center gap-1"
+                                >
                                   <ThumbsUp className="h-3 w-3" />
                                   <span>{reply.likes}</span>
                                 </button>
