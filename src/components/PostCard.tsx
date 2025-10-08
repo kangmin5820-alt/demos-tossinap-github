@@ -508,31 +508,33 @@ const PostCard = ({
 
       <div className="flex items-center justify-between gap-4 text-sm text-muted-foreground pt-2 border-t border-border/50">
         <div className="flex items-center gap-4">
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setIsExpanded(!isExpanded);
-            }}
-            className="flex items-center gap-1.5 hover:text-primary transition-colors"
-          >
-            <MessageCircle className="h-4 w-4" />
-            <span>{type === "user" ? comments.length : commentCount}</span>
-          </button>
           {type === "user" && (
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                handleLike();
-              }}
-              className={`flex items-center gap-1.5 transition-colors ${
-                hasLiked ? "text-red-500" : "hover:text-red-500"
-              }`}
-            >
-              <Heart className={`h-4 w-4 ${hasLiked ? "fill-current" : ""}`} />
-              <span>{postLikes.toLocaleString()}</span>
-            </button>
+            <>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsExpanded(!isExpanded);
+                }}
+                className="flex items-center gap-1.5 hover:text-primary transition-colors"
+              >
+                <MessageCircle className="h-4 w-4" />
+                <span>{comments.length}</span>
+              </button>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleLike();
+                }}
+                className={`flex items-center gap-1.5 transition-colors ${
+                  hasLiked ? "text-red-500" : "hover:text-red-500"
+                }`}
+              >
+                <Heart className={`h-4 w-4 ${hasLiked ? "fill-current" : ""}`} />
+                <span>{postLikes.toLocaleString()}</span>
+              </button>
+            </>
           )}
           <div className="flex items-center gap-1.5">
             <span>{views.toLocaleString()} views</span>
