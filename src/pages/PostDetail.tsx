@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +10,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   ChevronDown,
   ExternalLink,
@@ -29,6 +29,94 @@ import {
   Send,
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
+
+interface Post {
+  id: number;
+  title: string;
+  summary: string;
+  category: string;
+  timestamp: string;
+  commentCount: number;
+  views: number;
+  isOfficial: boolean;
+  type: "user" | "official";
+  attachments?: {
+    poll?: {
+      question: string;
+      options: Array<{
+        text: string;
+        votes: number;
+      }>;
+      totalVotes: number;
+    };
+  };
+}
+
+const mockPosts: Post[] = [
+  {
+    id: 1,
+    title: "이진숙 체포적부심사에 대한 논쟁",
+    summary: "방송통신위원회 이진숙 위원장 후보자에 대한 체포적부심사가 오늘 오후 진행됩니다. 대통령의 예능 프로그램 출연을 둘러싼 논란이 계속되고 있습니다.",
+    category: "정치",
+    timestamp: "2시간 전",
+    commentCount: 234,
+    views: 1234,
+    isOfficial: true,
+    type: "official",
+    attachments: {
+      poll: {
+        question: "이 사안에 대한 당신의 입장은?",
+        options: [
+          { text: "긍정적", votes: 523 },
+          { text: "부정적", votes: 412 }
+        ],
+        totalVotes: 935
+      }
+    }
+  },
+  {
+    id: 2,
+    title: "의대 증원, 우리 지역 병원은 어떻게 될까요?",
+    summary: "의대 정원 증원이 결정되면 우리 지역 의료 환경은 개선될까요? 실제 지역 병원 근무 의사입니다. 현실적인 이야기 나눠요.",
+    category: "사회",
+    timestamp: "1시간 전",
+    commentCount: 892,
+    views: 5432,
+    isOfficial: false,
+    type: "user",
+    attachments: {
+      poll: {
+        question: "의대 증원 정책, 지역 의료가 개선될까요?",
+        options: [
+          { text: "개선된다", votes: 1823 },
+          { text: "악화된다", votes: 3421 }
+        ],
+        totalVotes: 5244
+      }
+    }
+  },
+  {
+    id: 4,
+    title: "여론조사 회사에서 일합니다. 궁금한 점 물어보세요",
+    summary: "여론조사의 신빙성에 대한 의문이 많으시죠? 실제 조사원으로 일하며 느낀 점들을 공유합니다. 표본 추출부터 질문 설계까지.",
+    category: "정치",
+    timestamp: "3시간 전",
+    commentCount: 678,
+    views: 4123,
+    isOfficial: false,
+    type: "user",
+    attachments: {
+      poll: {
+        question: "여론조사 결과를 신뢰하시나요?",
+        options: [
+          { text: "신뢰한다", votes: 487 },
+          { text: "신뢰하지 않는다", votes: 2341 }
+        ],
+        totalVotes: 2828
+      }
+    }
+  }
+];
 
 interface ExpertOpinion {
   name: string;
@@ -101,11 +189,26 @@ interface Comment {
 
 const PostDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [showAllOpinions, setShowAllOpinions] = useState(false);
   const [showImpactCalculator, setShowImpactCalculator] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [replyTo, setReplyTo] = useState<number | null>(null);
   const [replyContent, setReplyContent] = useState("");
+
+  const currentPost = mockPosts.find(post => post.id === Number(id));
+  
+  useEffect(() => {
+    if (!currentPost) {
+      navigate("/");
+    }
+  }, [currentPost, navigate]);
+
+  if (!currentPost) {
+    return null;
+  }
+
+  const isUserPost = currentPost.type === "user";
   
   // Mock user data (로그인되어 있다고 가정)
   const mockUser = {
@@ -115,12 +218,9 @@ const PostDetail = () => {
     region: "서울"
   };
 
-  // 일반인 게시물인지 확인 (id가 4 이상이면 일반인 게시물로 가정)
-  const isUserPost = id && parseInt(id) >= 4;
-
   const [pollVotes, setPollVotes] = useState({
-    positive: 523,
-    negative: 412
+    positive: currentPost.attachments?.poll?.options[0]?.votes || 523,
+    negative: currentPost.attachments?.poll?.options[1]?.votes || 412
   });
 
   const [userVote, setUserVote] = useState<"positive" | "negative" | null>(null);
@@ -273,14 +373,14 @@ const PostDetail = () => {
           <div className="mb-6">
             <Badge className="mb-4">{isUserPost ? "일반 사용자" : "데모스 공식"}</Badge>
             <h1 className="mb-4 text-4xl font-bold leading-tight text-foreground">
-              {isUserPost ? "데모스 플랫폼 사용 후기 및 개선 제안" : "이진숙 체포적부심사에 대한 논쟁"}
+              {currentPost.title}
             </h1>
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <span>2024년 3월 15일</span>
+              <span>{currentPost.timestamp}</span>
               <span>•</span>
               <div className="flex items-center gap-1">
                 <TrendingUp className="h-4 w-4" />
-                <span>1,234회 조회</span>
+                <span>{currentPost.views.toLocaleString()}회 조회</span>
               </div>
             </div>
           </div>
@@ -289,10 +389,7 @@ const PostDetail = () => {
             <div className="p-6">
               <h2 className="mb-3 text-xl font-bold text-foreground">📋 {isUserPost ? "내용" : "핵심 요약"}</h2>
               <p className="leading-relaxed text-foreground">
-                {isUserPost 
-                  ? "데모스 플랫폼을 사용해본 지 한 달이 지났습니다. 전반적으로 정치 이슈를 다양한 관점에서 볼 수 있어서 좋았지만, 몇 가지 개선되었으면 하는 부분이 있어 글을 남깁니다. 특히 모바일 UX와 알림 기능 부분에서 불편함을 느꼈습니다."
-                  : "방송통신위원회 이진숙 위원장 후보자에 대한 체포적부심사가 오늘 오후 진행됩니다. 이번 사건은 방송 장악 의혹과 대통령의 예능 프로그램 출연을 둘러싼 정치적 논란이 맞물려 있습니다. 진보와 보수 진영은 각각 다른 관점에서 이 사안을 바라보고 있으며, 향후 방송 정책에 미칠 영향이 주목됩니다."
-                }
+                {currentPost.summary}
               </p>
             </div>
           </Card>
