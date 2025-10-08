@@ -422,68 +422,55 @@ const PostDetail = () => {
             <Card className="border-none bg-card shadow-sm rounded-2xl overflow-hidden">
               <div className="p-6">
                 <p className="mb-6 text-lg text-foreground">이 사안에 대한 당신의 입장은?</p>
-                <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="flex gap-0 rounded-full overflow-hidden h-16 border-2 border-border mb-4">
                   <button
                     onClick={() => handlePollVote("positive")}
                     disabled={userVote !== null}
-                    className={`relative overflow-hidden rounded-2xl border-2 p-6 text-center transition-all ${
-                      userVote === "positive"
-                        ? "border-green-500 bg-green-500/10"
-                        : userVote
-                        ? "border-muted opacity-50"
-                        : "border-muted hover:border-green-500 hover:bg-green-500/5"
+                    className={`flex-1 flex items-center justify-center gap-2 font-bold transition-all ${
+                      userVote === "positive" 
+                        ? "bg-[hsl(var(--demos-positive))] text-white" 
+                        : "bg-card hover:bg-secondary text-foreground"
                     } ${userVote ? "cursor-not-allowed" : "cursor-pointer"}`}
+                    style={
+                      userVote !== null 
+                        ? { width: `${positivePercent}%` }
+                        : undefined
+                    }
                   >
-                    <div className="relative z-10">
-                      <div className="text-4xl mb-3">😊</div>
-                      <p className="font-bold text-lg text-foreground mb-1">긍정적</p>
+                    <span className="text-2xl">😊</span>
+                    <div className="flex flex-col items-center">
+                      <span className="text-base">긍정적</span>
                       {userVote && (
-                        <p className="text-sm text-muted-foreground mt-2">
-                          {pollVotes.positive}표 ({positivePercent}%)
-                        </p>
+                        <span className="text-sm opacity-90">{positivePercent}%</span>
                       )}
                     </div>
-                    {userVote && (
-                      <div
-                        className="absolute left-0 bottom-0 h-1.5 bg-green-500 transition-all"
-                        style={{ width: `${positivePercent}%` }}
-                      />
-                    )}
                   </button>
-
                   <button
                     onClick={() => handlePollVote("negative")}
                     disabled={userVote !== null}
-                    className={`relative overflow-hidden rounded-2xl border-2 p-6 text-center transition-all ${
-                      userVote === "negative"
-                        ? "border-red-500 bg-red-500/10"
-                        : userVote
-                        ? "border-muted opacity-50"
-                        : "border-muted hover:border-red-500 hover:bg-red-500/5"
+                    className={`flex-1 flex items-center justify-center gap-2 font-bold transition-all ${
+                      userVote === "negative" 
+                        ? "bg-[hsl(var(--demos-negative))] text-white" 
+                        : "bg-card hover:bg-secondary text-foreground"
                     } ${userVote ? "cursor-not-allowed" : "cursor-pointer"}`}
+                    style={
+                      userVote !== null 
+                        ? { width: `${negativePercent}%` }
+                        : undefined
+                    }
                   >
-                    <div className="relative z-10">
-                      <div className="text-4xl mb-3">😞</div>
-                      <p className="font-bold text-lg text-foreground mb-1">부정적</p>
+                    <span className="text-2xl">😞</span>
+                    <div className="flex flex-col items-center">
+                      <span className="text-base">부정적</span>
                       {userVote && (
-                        <p className="text-sm text-muted-foreground mt-2">
-                          {pollVotes.negative}표 ({negativePercent}%)
-                        </p>
+                        <span className="text-sm opacity-90">{negativePercent}%</span>
                       )}
                     </div>
-                    {userVote && (
-                      <div
-                        className="absolute left-0 bottom-0 h-1.5 bg-red-500 transition-all"
-                        style={{ width: `${negativePercent}%` }}
-                      />
-                    )}
                   </button>
                 </div>
-                {userVote && (
-                  <p className="text-sm text-muted-foreground text-center">
-                    총 {totalPollVotes}명이 투표했습니다
-                  </p>
-                )}
+                <p className="text-sm text-muted-foreground text-center mt-3">
+                  총 {totalPollVotes.toLocaleString()}명이 투표했습니다
+                </p>
               </div>
             </Card>
           </div>

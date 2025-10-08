@@ -8,50 +8,50 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 3%;
-    --foreground: 0 0% 95%;
+    --background: 0 0% 0%;
+    --foreground: 0 0% 98%;
 
-    --card: 0 0% 6%;
-    --card-foreground: 0 0% 95%;
+    --card: 0 0% 8%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 0 0% 6%;
-    --popover-foreground: 0 0% 95%;
+    --popover: 0 0% 8%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 217 91% 55%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 45 100% 51%;
+    --primary-foreground: 0 0% 0%;
 
-    --secondary: 0 0% 12%;
-    --secondary-foreground: 0 0% 95%;
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 0 0% 12%;
-    --muted-foreground: 0 0% 55%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 60%;
 
-    --accent: 217 91% 55%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 45 100% 51%;
+    --accent-foreground: 0 0% 0%;
 
     --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 15%;
-    --input: 0 0% 15%;
-    --ring: 217 91% 55%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 45 100% 51%;
 
     --radius: 0.75rem;
 
     /* Demos specific colors */
-    --demos-blue: 217 91% 55%;
-    --demos-blue-light: 217 91% 70%;
-    --demos-red: 0 72% 55%;
-    --demos-red-light: 0 72% 70%;
+    --demos-yellow: 45 100% 51%;
+    --demos-yellow-dark: 45 100% 35%;
+    --demos-positive: 142 71% 45%;
+    --demos-negative: 0 72% 55%;
     --demos-neutral: 0 0% 50%;
     
     /* Gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(217 91% 35%) 0%, hsl(217 91% 55%) 100%);
-    --gradient-card: linear-gradient(to bottom, hsl(0 0% 6%) 0%, hsl(0 0% 8%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(45 100% 35%) 0%, hsl(45 100% 51%) 100%);
+    --gradient-card: linear-gradient(to bottom, hsl(0 0% 8%) 0%, hsl(0 0% 10%) 100%);
     
     /* Shadows */
     --shadow-card: 0 1px 3px hsl(0 0% 0% / 0.5);
-    --shadow-card-hover: 0 2px 8px hsl(0 0% 0% / 0.6);
+    --shadow-card-hover: 0 2px 8px hsl(45 100% 51% / 0.2);
     
     /* Transitions */
     --transition-base: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -59,44 +59,44 @@ All colors MUST be HSL.
 
   .dark {
     --background: 0 0% 0%;
-    --foreground: 0 0% 95%;
+    --foreground: 0 0% 98%;
 
-    --card: 0 0% 6%;
-    --card-foreground: 0 0% 95%;
+    --card: 0 0% 8%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 0 0% 6%;
-    --popover-foreground: 0 0% 95%;
+    --popover: 0 0% 8%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 217 91% 55%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 45 100% 51%;
+    --primary-foreground: 0 0% 0%;
 
-    --secondary: 0 0% 12%;
-    --secondary-foreground: 0 0% 95%;
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 0 0% 12%;
-    --muted-foreground: 0 0% 55%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 60%;
 
-    --accent: 217 91% 55%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 45 100% 51%;
+    --accent-foreground: 0 0% 0%;
 
     --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 15%;
-    --input: 0 0% 15%;
-    --ring: 217 91% 55%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 45 100% 51%;
 
-    --demos-blue: 217 91% 55%;
-    --demos-blue-light: 217 91% 70%;
-    --demos-red: 0 72% 55%;
-    --demos-red-light: 0 72% 70%;
+    --demos-yellow: 45 100% 51%;
+    --demos-yellow-dark: 45 100% 35%;
+    --demos-positive: 142 71% 45%;
+    --demos-negative: 0 72% 55%;
     --demos-neutral: 0 0% 50%;
     
-    --gradient-hero: linear-gradient(135deg, hsl(217 91% 35%) 0%, hsl(217 91% 55%) 100%);
-    --gradient-card: linear-gradient(to bottom, hsl(0 0% 6%) 0%, hsl(0 0% 8%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(45 100% 35%) 0%, hsl(45 100% 51%) 100%);
+    --gradient-card: linear-gradient(to bottom, hsl(0 0% 8%) 0%, hsl(0 0% 10%) 100%);
     
     --shadow-card: 0 1px 3px hsl(0 0% 0% / 0.5);
-    --shadow-card-hover: 0 2px 8px hsl(0 0% 0% / 0.6);
+    --shadow-card-hover: 0 2px 8px hsl(45 100% 51% / 0.2);
   }
 }
 
