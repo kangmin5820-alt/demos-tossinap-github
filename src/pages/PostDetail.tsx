@@ -201,6 +201,17 @@ const PostDetail = () => {
   useEffect(() => {
     if (!currentPost) {
       navigate("/");
+      return;
+    }
+    
+    // URL에 #comments가 있으면 댓글 섹션으로 스크롤
+    if (window.location.hash === '#comments') {
+      setTimeout(() => {
+        const commentsSection = document.getElementById('comments-section');
+        if (commentsSection) {
+          commentsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
     }
   }, [currentPost, navigate]);
 
@@ -621,7 +632,7 @@ const PostDetail = () => {
 
           <Separator className="my-8" />
 
-          <Card className="border-none bg-card shadow-sm rounded-3xl">
+          <Card id="comments-section" className="border-none bg-card shadow-sm rounded-3xl">
             <div className="p-6">
               <h3 className="mb-6 text-xl font-bold text-foreground flex items-center gap-2">
                 <MessageCircle className="h-5 w-5" />

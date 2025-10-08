@@ -2,8 +2,7 @@ import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { MessageCircle, Heart, User, Share2 } from "lucide-react";
-import { toast } from "sonner";
+import { MessageCircle, Heart, User } from "lucide-react";
 
 interface PostCardProps {
   id: number;
@@ -43,27 +42,8 @@ const PostCard = ({
   type = "official",
   attachments,
 }: PostCardProps) => {
-  const handleShare = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    if (navigator.share) {
-      navigator.share({
-        title: title,
-        text: summary,
-        url: window.location.origin + `/post/${id}`
-      }).catch(() => {
-        // 공유 취소 시 무시
-      });
-    } else {
-      // 폴백: URL 복사
-      navigator.clipboard.writeText(window.location.origin + `/post/${id}`);
-      toast.success("링크가 복사되었습니다");
-    }
-  };
-
   return (
-    <Link to={`/post/${id}`}>
+    <Link to={`/post/${id}#comments`}>
       <Card className="group border border-border bg-card hover:bg-card/80 transition-all rounded-2xl overflow-hidden">
         <div className="p-5">
           <div className="flex items-start gap-3 mb-3">
@@ -138,13 +118,6 @@ const PostCard = ({
                 <span>{views.toLocaleString()} views</span>
               </div>
             </div>
-            <button
-              onClick={handleShare}
-              className="flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-colors p-2 hover:bg-primary/10 rounded-lg"
-              aria-label="공유하기"
-            >
-              <Share2 className="h-4 w-4" />
-            </button>
           </div>
         </div>
       </Card>
