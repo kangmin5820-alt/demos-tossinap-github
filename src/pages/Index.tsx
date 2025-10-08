@@ -1,164 +1,93 @@
+import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import PostCard from "@/components/PostCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, Sparkles, Filter, ExternalLink, ChevronDown } from "lucide-react";
-import { useState } from "react";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { Filter, Sparkles } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Post {
-  id: number;
-  title: string;
-  summary: string;
+  id: string;
+  title?: string;
+  content: string;
   category: string;
-  timestamp: string;
-  commentCount: number;
+  created_at: string;
   views: number;
-  isOfficial: boolean;
-  likes?: number;
-  type?: "user" | "official";
-  attachments?: {
-    poll?: {
-      question: string;
-      options: Array<{
-        text: string;
-        votes: number;
-        image?: string;
-      }>;
-      totalVotes: number;
-    };
-    links?: string[];
-  };
+  is_official: boolean;
+  likes: number;
+  type: "user" | "official";
+  poll_options?: Array<{
+    id: string;
+    option_text: string;
+    votes: number;
+  }>;
+  comments_count?: number;
 }
-
-const mockPosts: Post[] = [
-  // 데모스 공식 게시물
-  {
-    id: 1,
-    title: "이진숙 체포적부심사에 대한 논쟁",
-    summary: "방송통신위원회 이진숙 위원장 후보자에 대한 체포적부심사가 오늘 오후 진행됩니다. 대통령의 예능 프로그램 출연을 둘러싼 논란이 계속되고 있습니다.",
-    category: "정치",
-    timestamp: "2시간 전",
-    commentCount: 234,
-    views: 1234,
-    isOfficial: true,
-    type: "official",
-    attachments: {
-      poll: {
-        question: "이 사안에 대한 당신의 입장은?",
-        options: [
-          { text: "긍정적", votes: 523 },
-          { text: "부정적", votes: 412 }
-        ],
-        totalVotes: 935
-      }
-    }
-  },
-  // 일반인 핫한 게시물
-  {
-    id: 2,
-    title: "의대 증원, 우리 지역 병원은 어떻게 될까요?",
-    summary: "의대 정원 증원이 결정되면 우리 지역 의료 환경은 개선될까요? 실제 지역 병원 근무 의사입니다. 현실적인 이야기 나눠요.",
-    category: "사회",
-    timestamp: "1시간 전",
-    commentCount: 892,
-    views: 5432,
-    isOfficial: false,
-    type: "user",
-    likes: 1247,
-    attachments: {
-      poll: {
-        question: "의대 증원 정책, 지역 의료가 개선될까요?",
-        options: [
-          { text: "개선된다", votes: 1823 },
-          { text: "악화된다", votes: 3421 }
-        ],
-        totalVotes: 5244
-      }
-    }
-  },
-  {
-    id: 3,
-    title: "무비자 입국 제도, 관광객 실종 사건의 딜레마",
-    summary: "무비자 입국 제도 시행 첫날, 중국인 관광객 6명이 행방불명되어 법무부가 추적에 나섰습니다. 개방과 안전 사이의 균형이 화두입니다.",
-    category: "사회",
-    timestamp: "4시간 전",
-    commentCount: 156,
-    views: 892,
-    isOfficial: true,
-    type: "official",
-  },
-  // 일반인 핫한 게시물
-  {
-    id: 4,
-    title: "여론조사 회사에서 일합니다. 궁금한 점 물어보세요",
-    summary: "여론조사의 신빙성에 대한 의문이 많으시죠? 실제 조사원으로 일하며 느낀 점들을 공유합니다. 표본 추출부터 질문 설계까지.",
-    category: "정치",
-    timestamp: "3시간 전",
-    commentCount: 678,
-    views: 4123,
-    isOfficial: false,
-    type: "user",
-    likes: 923,
-    attachments: {
-      poll: {
-        question: "여론조사 결과를 신뢰하시나요?",
-        options: [
-          { text: "신뢰한다", votes: 487 },
-          { text: "신뢰하지 않는다", votes: 2341 }
-        ],
-        totalVotes: 2828
-      },
-      links: [
-        "https://n.news.naver.com/mnews/article/079/0004073229"
-      ]
-    }
-  },
-  {
-    id: 5,
-    title: "북핵 불용 원칙, 흔들리는 한반도 안보 정책",
-    summary: "북한은 비핵화 대화를 거부하는 가운데, 남한 일각에서는 북핵 인정론이 제기되며 '북핵 불용' 원칙이 흔들리고 있습니다.",
-    category: "국제",
-    timestamp: "6시간 전",
-    commentCount: 342,
-    views: 2156,
-    isOfficial: true,
-    type: "official",
-  },
-  {
-    id: 6,
-    title: "여론조사의 신빙성 논란, 과연 믿을 수 있을까",
-    summary: "최근 발표된 여론조사 결과를 둘러싼 신뢰성 논란이 가열되고 있습니다. 표본 추출 방법과 질문 설계의 공정성에 대한 의문이 제기됩니다.",
-    category: "정치",
-    timestamp: "8시간 전",
-    commentCount: 189,
-    views: 1567,
-    isOfficial: true,
-    type: "official",
-  },
-  {
-    id: 7,
-    title: "의대 증원 정책, 의료계와 정부의 갈등 심화",
-    summary: "정부의 의대 정원 증원 방침에 의료계가 강력 반발하며 갈등이 심화되고 있습니다. 의료 수급과 교육 질의 균형이 쟁점입니다.",
-    category: "사회",
-    timestamp: "12시간 전",
-    commentCount: 412,
-    views: 3245,
-    isOfficial: true,
-    type: "official",
-  },
-];
 
 const Index = () => {
   const [filter, setFilter] = useState<"all" | "official">("all");
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredPosts = filter === "official" 
-    ? mockPosts.filter(post => post.type === "official")
-    : mockPosts;
+  useEffect(() => {
+    fetchPosts();
+  }, [filter]);
+
+  const fetchPosts = async () => {
+    setLoading(true);
+    try {
+      let query = supabase
+        .from('posts')
+        .select(`
+          *,
+          poll_options (
+            id,
+            option_text,
+            votes
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (filter === "official") {
+        query = query.eq('type', 'official');
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+
+      // 각 게시물의 댓글 수 가져오기
+      const postsWithCounts = await Promise.all(
+        (data || []).map(async (post) => {
+          const { count } = await supabase
+            .from('comments')
+            .select('*', { count: 'exact', head: true })
+            .eq('post_id', post.id);
+
+          return {
+            ...post,
+            comments_count: count || 0,
+          };
+        })
+      );
+
+      setPosts(postsWithCounts as any);
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getTimeAgo = (dateString: string) => {
+    const now = new Date();
+    const past = new Date(dateString);
+    const diffInMinutes = Math.floor((now.getTime() - past.getTime()) / 60000);
+
+    if (diffInMinutes < 60) return `${diffInMinutes}분 전`;
+    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}시간 전`;
+    return `${Math.floor(diffInMinutes / 1440)}일 전`;
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -195,11 +124,48 @@ const Index = () => {
           </div>
         </div>
 
-        <div className="space-y-6">
-          {filteredPosts.map((post) => (
-            <PostCard key={post.id} {...post} />
-          ))}
-        </div>
+        {loading ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">로딩 중...</p>
+          </div>
+        ) : posts.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">게시물이 없습니다.</p>
+            <p className="text-sm text-muted-foreground mt-2">첫 게시물을 작성해보세요!</p>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {posts.map((post) => {
+              const totalVotes = post.poll_options?.reduce((sum, opt) => sum + opt.votes, 0) || 0;
+              
+              return (
+                <PostCard
+                  key={post.id}
+                  id={Number(post.id.split('-').join('').substring(0, 8))}
+                  title={post.title || ''}
+                  summary={post.content}
+                  category={post.category}
+                  timestamp={getTimeAgo(post.created_at)}
+                  commentCount={post.comments_count || 0}
+                  views={post.views}
+                  isOfficial={post.is_official}
+                  likes={post.likes}
+                  type={post.type}
+                  attachments={post.poll_options && post.poll_options.length > 0 ? {
+                    poll: {
+                      question: "이 사안에 대한 당신의 입장은?",
+                      options: post.poll_options.map(opt => ({
+                        text: opt.option_text,
+                        votes: opt.votes,
+                      })),
+                      totalVotes,
+                    }
+                  } : undefined}
+                />
+              );
+            })}
+          </div>
+        )}
       </main>
     </div>
   );

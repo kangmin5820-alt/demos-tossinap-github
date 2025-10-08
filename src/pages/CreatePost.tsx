@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -6,14 +6,27 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { X, Plus } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import Header from "@/components/Header";
+import { supabase } from "@/integrations/supabase/client";
 
 const CreatePost = () => {
   const navigate = useNavigate();
   const [content, setContent] = useState("");
   const [pollOptions, setPollOptions] = useState<string[]>(["", ""]);
   const [hasPoll, setHasPoll] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
+        navigate("/auth");
+      } else {
+        setUser(session.user);
+      }
+    });
+  }, [navigate]);
 
   const handleAddPollOption = () => {
     if (pollOptions.length < 5) {
@@ -33,31 +46,59 @@ const CreatePost = () => {
     setPollOptions(newOptions);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!content.trim()) {
-      toast({
-        title: "내용을 입력해주세요",
-        variant: "destructive",
-      });
+      toast.error("내용을 입력해주세요");
       return;
     }
 
     if (hasPoll) {
       const validOptions = pollOptions.filter(opt => opt.trim());
       if (validOptions.length < 2) {
-        toast({
-          title: "투표 옵션을 최소 2개 이상 입력해주세요",
-          variant: "destructive",
-        });
+        toast.error("투표 옵션을 최소 2개 이상 입력해주세요");
         return;
       }
     }
 
-    toast({
-      title: "게시물이 작성되었습니다",
-    });
-    
-    navigate("/");
+    setLoading(true);
+
+    try {
+      // 게시물 생성
+      const { data: post, error: postError } = await supabase
+        .from('posts')
+        .insert({
+          content,
+          user_id: user?.id,
+          type: 'user',
+        })
+        .select()
+        .single();
+
+      if (postError) throw postError;
+
+      // 투표 옵션이 있으면 추가
+      if (hasPoll && post) {
+        const validOptions = pollOptions.filter(opt => opt.trim());
+        const { error: pollError } = await supabase
+          .from('poll_options')
+          .insert(
+            validOptions.map(opt => ({
+              post_id: post.id,
+              option_text: opt.trim(),
+            }))
+          );
+
+        if (pollError) throw pollError;
+      }
+
+      toast.success("게시물이 작성되었습니다");
+      navigate("/");
+    } catch (error: any) {
+      console.error('Error creating post:', error);
+      toast.error(error.message || "게시물 작성에 실패했습니다");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -143,14 +184,16 @@ const CreatePost = () => {
               variant="outline"
               onClick={() => navigate("/")}
               className="flex-1"
+              disabled={loading}
             >
               취소
             </Button>
             <Button
               onClick={handleSubmit}
               className="flex-1"
+              disabled={loading}
             >
-              게시하기
+              {loading ? "게시중..." : "게시하기"}
             </Button>
           </div>
         </Card>
