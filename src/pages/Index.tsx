@@ -147,7 +147,7 @@ const Index = () => {
                   className="cursor-pointer transition-transform hover:scale-[1.01]"
                 >
                   <PostCard
-                    id={Number(post.id.split('-').join('').substring(0, 8))}
+                    id={post.id}
                     title={post.title || ''}
                     summary={post.content}
                     category={post.category}

@@ -10,7 +10,7 @@ import { MessageCircle, Heart, User, ThumbsUp, Send } from "lucide-react";
 import { useState } from "react";
 
 interface PostCardProps {
-  id: number;
+  id: string;
   title: string;
   summary: string;
   category: string;

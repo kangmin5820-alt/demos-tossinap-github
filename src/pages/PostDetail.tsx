@@ -381,18 +381,15 @@ const PostDetail = () => {
             <div className="space-y-3">
               {mockExpertOpinions.slice(0, showExperts ? mockExpertOpinions.length : 1).map((expert) => (
                 <Card key={expert.id} className="p-4 bg-muted/50 border-0">
-                  <div className="flex items-start gap-3">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-semibold text-sm">{expert.name}</span>
-                        <Badge className="text-xs bg-yellow-500 hover:bg-yellow-500 text-black border-0">
-                          {expert.affiliation}
-                        </Badge>
+                    <div className="flex items-start gap-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-semibold text-sm">{expert.name}</span>
+                        </div>
+                        <p className="text-sm mb-2 leading-relaxed">{expert.opinion}</p>
+                        <p className="text-xs text-muted-foreground">JTBC 뉴스룸 📺</p>
                       </div>
-                      <p className="text-sm mb-2 leading-relaxed">{expert.opinion}</p>
-                      <p className="text-xs text-muted-foreground">JTBC 뉴스룸 📺</p>
                     </div>
-                  </div>
                 </Card>
               ))}
             </div>
@@ -441,31 +438,50 @@ const PostDetail = () => {
             <Card className="p-6 bg-muted/50 border-0">
               <p className="text-sm mb-4">이 사안에 대한 당신의 입장은?</p>
               
-              <div className="flex gap-3 mb-4">
-                {pollOptions.map((option) => {
-                  const percentage = totalVotes > 0 ? (option.votes / totalVotes) * 100 : 0;
-                  const isSelected = selectedVote === option.id;
-
-                  return (
+              {!selectedVote ? (
+                <div className="flex gap-3 mb-4">
+                  {pollOptions.map((option, idx) => (
                     <Button
                       key={option.id}
                       variant="outline"
                       onClick={() => handleVote(option.id)}
-                      disabled={!!selectedVote}
                       className="flex-1 h-auto p-4 bg-background hover:bg-muted border-border"
                     >
                       <div className="flex flex-col items-center gap-2">
-                        <span className="text-2xl">😊</span>
+                        <span className="text-2xl">{idx === 0 ? '😊' : '😞'}</span>
                         <span className="font-medium text-sm">{option.option_text}</span>
                       </div>
                     </Button>
-                  );
-                })}
-              </div>
-              
-              <p className="text-xs text-center text-muted-foreground">
-                총 {totalVotes}명이 투표했습니다
-              </p>
+                  ))}
+                </div>
+              ) : (
+                <div className="mb-4">
+                  <div className="flex gap-0 rounded-full overflow-hidden h-14 border-2 border-border mb-3">
+                    {pollOptions.map((option, idx) => {
+                      const percentage = totalVotes > 0 ? ((option.votes / totalVotes) * 100).toFixed(1) : '0';
+                      const isSelected = selectedVote === option.id;
+                      const bgColor = idx === 0 ? 'bg-green-500' : 'bg-gray-600';
+                      
+                      return (
+                        <div
+                          key={option.id}
+                          className={`flex items-center justify-center gap-2 ${bgColor} text-white font-bold transition-all`}
+                          style={{ width: `${percentage}%` }}
+                        >
+                          <span className="text-xl">{idx === 0 ? '😊' : '😞'}</span>
+                          <div className="flex flex-col items-center">
+                            <span className="text-sm">{option.option_text}</span>
+                            <span className="text-xs opacity-90">{percentage}%</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <p className="text-xs text-center text-muted-foreground">
+                    총 {totalVotes.toLocaleString()}명이 투표했습니다
+                  </p>
+                </div>
+              )}
             </Card>
           </div>
         )}
@@ -480,13 +496,9 @@ const PostDetail = () => {
           {/* 댓글 목록 */}
           <div className="space-y-4 mb-6">
             {comments.map((comment, index) => {
-              const isTopComment = index === 0 && comment.likes > 100;
-              const badges = [
-                { text: "대표의견", color: "bg-yellow-500 hover:bg-yellow-500 text-black border-0" },
-                { text: "포용적", color: "bg-blue-500 hover:bg-blue-500 text-white border-0" },
-                { text: "반대", color: "bg-red-500 hover:bg-red-500 text-white border-0" }
-              ];
-              const badge = isTopComment ? badges[0] : badges[(index % 2) + 1];
+              // 공식 게시물에서는 가장 많은 좋아요를 받은 댓글만 대표의견 배지 표시
+              const maxLikes = Math.max(...comments.map(c => c.likes));
+              const isTopComment = post.is_official && comment.likes === maxLikes && comment.likes > 0;
               
               return (
                 <div key={comment.id} className="space-y-3">
@@ -501,9 +513,11 @@ const PostDetail = () => {
                         <span className="font-semibold text-sm">
                           {index === 0 ? '김정치' : index === 1 ? '이준현' : '정책전문가'}
                         </span>
-                        <Badge className={`text-xs ${badge.color}`}>
-                          {badge.text}
-                        </Badge>
+                        {isTopComment && (
+                          <Badge className="text-xs bg-yellow-500 hover:bg-yellow-500 text-black border-0">
+                            대표의견
+                          </Badge>
+                        )}
                       </div>
                       <p className="text-sm mb-3 leading-relaxed">{comment.content}</p>
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
@@ -558,43 +572,32 @@ const PostDetail = () => {
                       {/* 답글 목록 */}
                       {comment.replies && comment.replies.length > 0 && (
                         <div className="mt-4 ml-8 space-y-3">
-                          {comment.replies.map((reply, replyIndex) => {
-                            const replyBadges = [
-                              { text: "포용적", color: "bg-blue-500 hover:bg-blue-500 text-white border-0" },
-                              { text: "반대", color: "bg-red-500 hover:bg-red-500 text-white border-0" },
-                              { text: "중립", color: "bg-green-500 hover:bg-green-500 text-white border-0" }
-                            ];
-                            const replyBadge = replyBadges[replyIndex % 3];
-                            return (
-                              <div key={reply.id} className="flex gap-3">
-                                <Avatar className="h-8 w-8 bg-yellow-500">
-                                  <AvatarFallback className="bg-yellow-500 text-black text-xs font-medium">
-                                    {replyIndex === 0 ? '박' : '미'}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <span className="text-sm font-semibold">
-                                      {replyIndex === 0 ? '박민주' : '미디어연구가'}
-                                    </span>
-                                    <Badge className={`text-xs ${replyBadge.color}`}>
-                                      {replyBadge.text}
-                                    </Badge>
-                                  </div>
-                                  <p className="text-sm mb-2 leading-relaxed">{reply.content}</p>
-                                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                                    <button 
-                                      onClick={() => handleLikeComment(reply.id)}
-                                      className="hover:text-foreground flex items-center gap-1"
-                                    >
-                                      <ThumbsUp className="h-3 w-3" />
-                                      <span>{reply.likes}</span>
-                                    </button>
-                                  </div>
+                          {comment.replies.map((reply, replyIndex) => (
+                            <div key={reply.id} className="flex gap-3">
+                              <Avatar className="h-8 w-8 bg-yellow-500">
+                                <AvatarFallback className="bg-yellow-500 text-black text-xs font-medium">
+                                  {replyIndex === 0 ? '박' : '미'}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="text-sm font-semibold">
+                                    {replyIndex === 0 ? '박민주' : '미디어연구가'}
+                                  </span>
+                                </div>
+                                <p className="text-sm mb-2 leading-relaxed">{reply.content}</p>
+                                <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                                  <button 
+                                    onClick={() => handleLikeComment(reply.id)}
+                                    className="hover:text-foreground flex items-center gap-1"
+                                  >
+                                    <ThumbsUp className="h-3 w-3" />
+                                    <span>{reply.likes}</span>
+                                  </button>
                                 </div>
                               </div>
-                            );
-                          })}
+                            </div>
+                          ))}
                         </div>
                       )}
                     </div>
