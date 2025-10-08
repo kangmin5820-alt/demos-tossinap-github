@@ -75,7 +75,7 @@ const mockExpertOpinions: ExpertOpinion[] = [
   },
   {
     id: "2",
-    name: "어민주",
+    name: "이민주",
     affiliation: "반대 입장",
     stance: "부정적",
     opinion: "정치적 독점을을 가지는 것이 무엇보다 중요합니다. 정권을 구성을 안하며 권론에 합합니다."
@@ -354,74 +354,74 @@ const PostDetail = () => {
         {/* 게시물 헤더 */}
         <div className="mb-6">
           {post.is_official && (
-            <Badge className="mb-3 bg-primary">데모스 공식</Badge>
+            <Badge className="mb-3 bg-yellow-500 hover:bg-yellow-600 text-black">데모스 공식</Badge>
           )}
           <h1 className="text-3xl font-bold mb-3">{post.title || '제목 없음'}</h1>
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
             <span>{formatDate(post.created_at)}</span>
             <span>•</span>
-            <span>{post.views.toLocaleString()}회 조회</span>
+            <span>👁 {post.views.toLocaleString()}회 조회</span>
           </div>
         </div>
 
         {/* 핵심 요약 */}
-        <Card className="p-6 mb-6 border-l-4 border-primary">
+        <Card className="p-6 mb-6 bg-muted/50">
           <div className="flex items-start gap-3">
-            <FileText className="h-5 w-5 text-primary flex-shrink-0 mt-1" />
+            <div className="text-2xl">📄</div>
             <div className="flex-1">
               <h2 className="font-semibold mb-3">핵심 요약</h2>
-              <p className="text-sm leading-relaxed">{post.content}</p>
+              <p className="text-sm leading-relaxed text-foreground/90">{post.content}</p>
             </div>
           </div>
         </Card>
 
         {/* 다양한 관점의 목소리 */}
         {post.is_official && (
-          <Card className="p-6 mb-6">
-            <Collapsible open={showExperts} onOpenChange={setShowExperts}>
-              <div className="flex items-center gap-2 mb-4">
-                <Sparkles className="h-5 w-5 text-primary" />
-                <h2 className="font-semibold text-lg">다양한 관점의 목소리</h2>
-              </div>
-              
-              <div className="space-y-4">
-                {mockExpertOpinions.slice(0, showExperts ? mockExpertOpinions.length : 3).map((expert) => (
-                  <Card key={expert.id} className="p-4 bg-muted/30">
-                    <div className="flex items-start gap-3">
-                      <Avatar className="h-10 w-10 bg-primary">
-                        <AvatarFallback className="bg-primary text-primary-foreground">
-                          {expert.name[0]}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-semibold">{expert.name}</span>
-                          <Badge variant="outline" className="text-xs">
-                            {expert.affiliation}
-                          </Badge>
-                        </div>
-                        <p className="text-sm mt-2">{expert.opinion}</p>
-                        <p className="text-xs text-muted-foreground mt-2">기타: 보수주의</p>
+          <div className="mb-6">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-xl">✨</span>
+              <h2 className="font-semibold text-lg">다양한 관점의 목소리</h2>
+            </div>
+            
+            <div className="space-y-4">
+              {mockExpertOpinions.slice(0, showExperts ? mockExpertOpinions.length : 3).map((expert) => (
+                <Card key={expert.id} className="p-4 bg-muted/50">
+                  <div className="flex items-start gap-3">
+                    <Avatar className="h-10 w-10 bg-yellow-500">
+                      <AvatarFallback className="bg-yellow-500 text-black">
+                        {expert.name[0]}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="font-semibold">{expert.name}</span>
+                        <Badge className="text-xs bg-yellow-500 hover:bg-yellow-600 text-black">
+                          {expert.affiliation}
+                        </Badge>
                       </div>
+                      <p className="text-sm mb-2">{expert.opinion}</p>
+                      <p className="text-xs text-muted-foreground">기타: 뉴스토크 📺</p>
                     </div>
-                  </Card>
-                ))}
-              </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
 
-              <CollapsibleTrigger asChild>
-                <Button variant="ghost" className="w-full mt-4">
-                  {showExperts ? '접기' : `더보기 (${mockExpertOpinions.length - 3}개 더)`} ▼
-                </Button>
-              </CollapsibleTrigger>
-            </Collapsible>
-          </Card>
+            <Button 
+              variant="ghost" 
+              className="w-full mt-4 border border-border"
+              onClick={() => setShowExperts(!showExperts)}
+            >
+              {showExperts ? '접기' : `더보기 (2개 더)`} ▼
+            </Button>
+          </div>
         )}
 
         {/* 정책 영향 계산기 */}
         {post.is_official && (
-          <Card className="p-6 mb-6 bg-muted/30">
+          <Card className="p-6 mb-6 bg-muted/50">
             <div className="flex items-start gap-3 mb-4">
-              <Calculator className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
+              <div className="text-2xl">📋</div>
               <div className="flex-1">
                 <h2 className="font-semibold text-lg mb-1">정책 영향 계산기</h2>
                 <p className="text-sm text-muted-foreground">
@@ -431,10 +431,9 @@ const PostDetail = () => {
             </div>
             <Button 
               onClick={() => setShowCalculator(!showCalculator)}
-              className="w-full bg-primary hover:bg-primary/90 h-12"
+              className="w-full bg-yellow-500 hover:bg-yellow-600 text-black h-12 font-medium"
             >
-              <Calculator className="h-4 w-4 mr-2" />
-              🧮 오랜 계산하기
+              📊 영향 계산하기
             </Button>
             {showCalculator && (
               <div className="mt-4 p-4 bg-background rounded-lg border">
@@ -448,50 +447,52 @@ const PostDetail = () => {
 
         {/* 투표하기 */}
         {pollOptions.length > 0 && (
-          <Card className="p-6 mb-6">
+          <div className="mb-6">
             <div className="flex items-center gap-2 mb-4">
-              <Target className="h-5 w-5 text-primary" />
+              <span className="text-xl">📊</span>
               <h2 className="font-semibold text-lg">투표하기</h2>
             </div>
             
-            <p className="text-sm mb-4">이 사안에 대한 당신의 입장은?</p>
-            
-            <div className="space-y-3 mb-4">
-              {pollOptions.map((option) => {
-                const percentage = totalVotes > 0 ? (option.votes / totalVotes) * 100 : 0;
-                const isSelected = selectedVote === option.id;
+            <Card className="p-6 bg-muted/50">
+              <p className="text-sm mb-4">이 사안에 대한 당신의 입장은?</p>
+              
+              <div className="space-y-3 mb-4">
+                {pollOptions.map((option) => {
+                  const percentage = totalVotes > 0 ? (option.votes / totalVotes) * 100 : 0;
+                  const isSelected = selectedVote === option.id;
 
-                return (
-                  <Button
-                    key={option.id}
-                    variant={isSelected ? "default" : "outline"}
-                    onClick={() => handleVote(option.id)}
-                    disabled={!!selectedVote}
-                    className="w-full h-auto p-4 relative overflow-hidden justify-start"
-                  >
-                    <div
-                      className="absolute left-0 top-0 h-full bg-primary/10 transition-all"
-                      style={{ width: `${percentage}%` }}
-                    />
-                    <div className="relative flex items-center gap-2">
-                      <span className="text-lg">😊</span>
-                      <span className="font-medium">{option.option_text}</span>
-                    </div>
-                  </Button>
-                );
-              })}
-            </div>
-            
-            <p className="text-sm text-center text-muted-foreground">
-              총 {totalVotes}명이 투표했습니다
-            </p>
-          </Card>
+                  return (
+                    <Button
+                      key={option.id}
+                      variant={isSelected ? "default" : "outline"}
+                      onClick={() => handleVote(option.id)}
+                      disabled={!!selectedVote}
+                      className="w-full h-auto p-4 relative overflow-hidden justify-start bg-background hover:bg-muted"
+                    >
+                      <div
+                        className="absolute left-0 top-0 h-full bg-muted transition-all"
+                        style={{ width: `${percentage}%` }}
+                      />
+                      <div className="relative flex items-center gap-2">
+                        <span className="text-lg">😊</span>
+                        <span className="font-medium">{option.option_text}</span>
+                      </div>
+                    </Button>
+                  );
+                })}
+              </div>
+              
+              <p className="text-sm text-center text-muted-foreground">
+                총 {totalVotes}명이 투표했습니다
+              </p>
+            </Card>
+          </div>
         )}
 
         {/* 의견 섹션 */}
-        <Card className="p-6">
+        <div>
           <div className="flex items-center gap-2 mb-6">
-            <MessageCircle className="h-5 w-5 text-primary" />
+            <span className="text-xl">💬</span>
             <h2 className="font-semibold text-lg">의견 ({comments.length})</h2>
           </div>
 
@@ -648,7 +649,7 @@ const PostDetail = () => {
               </div>
             </div>
           </div>
-        </Card>
+        </div>
       </main>
     </div>
   );
