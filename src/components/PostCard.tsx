@@ -456,23 +456,50 @@ const PostCard = ({
           </p>
 
           {attachments?.poll && (
-            <div className="mb-4 bg-muted/20 rounded-xl p-4 border border-border/50">
-              <p className="text-sm font-medium text-foreground mb-3">{attachments.poll.question}</p>
-              <div className="space-y-2">
+            <div className="mb-4 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 rounded-2xl p-5 border-2 border-primary/20 backdrop-blur-sm">
+              <p className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
+                <span className="text-lg">📊</span>
+                {attachments.poll.question}
+              </p>
+              <div className="space-y-2 mb-4">
                 {attachments.poll.options.map((option, idx) => (
                   <div
                     key={idx}
-                    className="relative overflow-hidden rounded-lg border border-border bg-background p-3"
+                    className="relative overflow-hidden rounded-xl border-2 border-border/50 bg-card/80 backdrop-blur-sm p-3"
                   >
                     <div className="relative z-10 flex items-center justify-between">
                       <span className="text-sm font-medium text-foreground">{option.text}</span>
-                      <span className="text-sm font-bold text-muted-foreground">?</span>
+                      <div className="flex items-center gap-2">
+                        <div className="flex gap-1">
+                          <div className="w-2 h-2 rounded-full bg-primary/30 animate-pulse"></div>
+                          <div className="w-2 h-2 rounded-full bg-primary/30 animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                          <div className="w-2 h-2 rounded-full bg-primary/30 animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
-              <p className="text-xs text-muted-foreground mt-3 text-center">
-                투표하고 결과를 확인하세요
+              <div className="flex gap-2">
+                <Link 
+                  to={`/post/${id}`}
+                  className="flex-1 bg-primary hover:bg-primary/90 text-white rounded-xl py-3 px-4 text-sm font-bold transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <span>📊</span>
+                  투표하고 결과 보기
+                </Link>
+                <Link 
+                  to={`/post/${id}#comments`}
+                  className="flex-1 bg-card hover:bg-card/80 border-2 border-primary/30 text-foreground rounded-xl py-3 px-4 text-sm font-bold transition-all flex items-center justify-center gap-2"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <span>💬</span>
+                  의견 보기
+                </Link>
+              </div>
+              <p className="text-xs text-center text-muted-foreground mt-3 font-medium">
+                🔥 {attachments.poll.totalVotes.toLocaleString()}명이 참여 중
               </p>
             </div>
           )}
