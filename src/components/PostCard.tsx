@@ -515,13 +515,23 @@ const PostCard = ({
     </div>
   );
 
+  if (type === "user") {
+    return (
+      <Card 
+        className="group border border-border bg-card hover:bg-card/80 transition-all rounded-2xl overflow-hidden cursor-pointer"
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
+        {CardContent}
+      </Card>
+    );
+  }
+
   return (
-    <Card 
-      className="group border border-border bg-card hover:bg-card/80 transition-all rounded-2xl overflow-hidden cursor-pointer"
-      onClick={() => setIsExpanded(!isExpanded)}
-    >
-      {CardContent}
-    </Card>
+    <Link to={`/post/${id}`}>
+      <Card className="group border border-border bg-card hover:bg-card/80 transition-all rounded-2xl overflow-hidden">
+        {CardContent}
+      </Card>
+    </Link>
   );
 };
 
