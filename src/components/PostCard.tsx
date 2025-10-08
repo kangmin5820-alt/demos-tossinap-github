@@ -317,128 +317,131 @@ const PostCard = ({
                 </div>
               )}
               
-              <div className="mb-6">
-                <h3 className="mb-4 text-lg font-bold text-foreground flex items-center gap-2">
-                  <MessageCircle className="h-5 w-5" />
-                  {type === "user" ? "스레드" : "의견"} ({comments.length})
-                </h3>
+              {/* 댓글 섹션 (일반인 게시물만) */}
+              {type === "user" && (
+                <div className="mb-6">
+                  <h3 className="mb-4 text-lg font-bold text-foreground flex items-center gap-2">
+                    <MessageCircle className="h-5 w-5" />
+                    스레드 ({comments.length})
+                  </h3>
                 
-                <div className="space-y-4 mb-4">
-                  {comments.map((comment) => (
-                    <div key={comment.id}>
-                      <div className="flex gap-3">
-                        <Avatar className="h-9 w-9">
-                          <AvatarFallback className="bg-gradient-hero text-white text-sm">
-                            {comment.user.charAt(0)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <p className="font-semibold text-foreground text-sm">{comment.user}</p>
-                          <p className="text-foreground/90 text-sm mt-1">{comment.content}</p>
-                          <div className="flex items-center gap-3 mt-2">
-                            <button 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleCommentLike(comment.id);
-                              }}
-                              className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1"
-                            >
-                              <ThumbsUp className="h-3 w-3" />
-                              {comment.likes}
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setReplyTo(replyTo === comment.id ? null : comment.id);
-                                setReplyContent("");
-                              }}
-                              className="text-xs text-muted-foreground hover:text-primary"
-                            >
-                              답글
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* 대댓글 목록 */}
-                      {comment.replies.length > 0 && (
-                        <div className="ml-12 mt-3 space-y-3">
-                          {comment.replies.map((reply) => (
-                            <div key={reply.id} className="flex gap-3">
-                              <Avatar className="h-8 w-8">
-                                <AvatarFallback className="bg-gradient-hero text-white text-xs">
-                                  {reply.user.charAt(0)}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="flex-1">
-                                <p className="font-semibold text-foreground text-sm">{reply.user}</p>
-                                <p className="text-foreground/90 text-sm mt-1">{reply.content}</p>
-                                <button 
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleReplyLike(comment.id, reply.id);
-                                  }}
-                                  className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1 mt-1"
-                                >
-                                  <ThumbsUp className="h-3 w-3" />
-                                  {reply.likes}
-                                </button>
-                              </div>
+                  <div className="space-y-4 mb-4">
+                    {comments.map((comment) => (
+                      <div key={comment.id}>
+                        <div className="flex gap-3">
+                          <Avatar className="h-9 w-9">
+                            <AvatarFallback className="bg-gradient-hero text-white text-sm">
+                              {comment.user.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1">
+                            <p className="font-semibold text-foreground text-sm">{comment.user}</p>
+                            <p className="text-foreground/90 text-sm mt-1">{comment.content}</p>
+                            <div className="flex items-center gap-3 mt-2">
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleCommentLike(comment.id);
+                                }}
+                                className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1"
+                              >
+                                <ThumbsUp className="h-3 w-3" />
+                                {comment.likes}
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setReplyTo(replyTo === comment.id ? null : comment.id);
+                                  setReplyContent("");
+                                }}
+                                className="text-xs text-muted-foreground hover:text-primary"
+                              >
+                                답글
+                              </button>
                             </div>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* 대댓글 작성 */}
-                      {replyTo === comment.id && (
-                        <div className="ml-12 mt-3 flex gap-2">
-                          <Textarea
-                            placeholder="답글을 작성해주세요..."
-                            value={replyContent}
-                            onChange={(e) => setReplyContent(e.target.value)}
-                            className="flex-1 min-h-[60px] resize-none text-sm"
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                          <div className="flex flex-col gap-2">
-                            <Button
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                handleAddReply(comment.id);
-                              }}
-                              size="sm"
-                              className="h-[60px] w-[60px]"
-                            >
-                              <Send className="h-4 w-4" />
-                            </Button>
                           </div>
                         </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
 
-                <div className="flex gap-2">
-                  <Textarea
-                    placeholder="댓글을 작성해주세요..."
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    className="flex-1 min-h-[80px] resize-none"
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                  <Button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleAddComment();
-                    }}
-                    size="icon"
-                    className="h-[80px] w-[80px]"
-                  >
-                    <Send className="h-5 w-5" />
-                  </Button>
+                        {/* 대댓글 목록 */}
+                        {comment.replies.length > 0 && (
+                          <div className="ml-12 mt-3 space-y-3">
+                            {comment.replies.map((reply) => (
+                              <div key={reply.id} className="flex gap-3">
+                                <Avatar className="h-8 w-8">
+                                  <AvatarFallback className="bg-gradient-hero text-white text-xs">
+                                    {reply.user.charAt(0)}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1">
+                                  <p className="font-semibold text-foreground text-sm">{reply.user}</p>
+                                  <p className="text-foreground/90 text-sm mt-1">{reply.content}</p>
+                                  <button 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleReplyLike(comment.id, reply.id);
+                                    }}
+                                    className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1 mt-1"
+                                  >
+                                    <ThumbsUp className="h-3 w-3" />
+                                    {reply.likes}
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* 대댓글 작성 */}
+                        {replyTo === comment.id && (
+                          <div className="ml-12 mt-3 flex gap-2">
+                            <Textarea
+                              placeholder="답글을 작성해주세요..."
+                              value={replyContent}
+                              onChange={(e) => setReplyContent(e.target.value)}
+                              className="flex-1 min-h-[60px] resize-none text-sm"
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                            <div className="flex flex-col gap-2">
+                              <Button
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  handleAddReply(comment.id);
+                                }}
+                                size="sm"
+                                className="h-[60px] w-[60px]"
+                              >
+                                <Send className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Textarea
+                      placeholder="댓글을 작성해주세요..."
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      className="flex-1 min-h-[80px] resize-none"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    <Button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleAddComment();
+                      }}
+                      size="icon"
+                      className="h-[80px] w-[80px]"
+                    >
+                      <Send className="h-5 w-5" />
+                    </Button>
+                  </div>
                 </div>
-              </div>
+              )}
             </>
           )}
         </>
@@ -456,27 +459,20 @@ const PostCard = ({
             <div className="mb-4 bg-muted/20 rounded-xl p-4 border border-border/50">
               <p className="text-sm font-medium text-foreground mb-3">{attachments.poll.question}</p>
               <div className="space-y-2">
-                {attachments.poll.options.map((option, idx) => {
-                  const percentage = ((option.votes / attachments.poll!.totalVotes) * 100).toFixed(0);
-                  return (
-                    <div
-                      key={idx}
-                      className="relative overflow-hidden rounded-lg border border-border bg-background p-3"
-                    >
-                      <div
-                        className="absolute left-0 top-0 h-full bg-primary/10 transition-all"
-                        style={{ width: `${percentage}%` }}
-                      />
-                      <div className="relative z-10 flex items-center justify-between">
-                        <span className="text-sm font-medium text-foreground">{option.text}</span>
-                        <span className="text-sm font-bold text-primary">{percentage}%</span>
-                      </div>
+                {attachments.poll.options.map((option, idx) => (
+                  <div
+                    key={idx}
+                    className="relative overflow-hidden rounded-lg border border-border bg-background p-3"
+                  >
+                    <div className="relative z-10 flex items-center justify-between">
+                      <span className="text-sm font-medium text-foreground">{option.text}</span>
+                      <span className="text-sm font-bold text-muted-foreground">?</span>
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
               </div>
               <p className="text-xs text-muted-foreground mt-3 text-center">
-                {attachments.poll.totalVotes.toLocaleString()}명 참여
+                투표하고 결과를 확인하세요
               </p>
             </div>
           )}
