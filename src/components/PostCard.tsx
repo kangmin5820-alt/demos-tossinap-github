@@ -58,14 +58,36 @@ const PostCard = ({
   const [postLikes, setPostLikes] = useState(likes || 0);
   const [hasLiked, setHasLiked] = useState(false);
   const [newComment, setNewComment] = useState("");
+  const [replyTo, setReplyTo] = useState<number | null>(null);
+  const [replyContent, setReplyContent] = useState("");
   const [comments, setComments] = useState<Array<{
     id: number;
     user: string;
     content: string;
     likes: number;
+    replies: Array<{
+      id: number;
+      user: string;
+      content: string;
+      likes: number;
+    }>;
   }>>([
-    { id: 1, user: "김민수", content: "좋은 의견 감사합니다!", likes: 12 },
-    { id: 2, user: "이지은", content: "저도 같은 생각입니다.", likes: 8 },
+    { 
+      id: 1, 
+      user: "김민수", 
+      content: "좋은 의견 감사합니다!", 
+      likes: 12,
+      replies: [
+        { id: 101, user: "박지영", content: "저도 동감합니다!", likes: 3 }
+      ]
+    },
+    { 
+      id: 2, 
+      user: "이지은", 
+      content: "저도 같은 생각입니다.", 
+      likes: 8,
+      replies: []
+    },
   ]);
 
   const handlePollVote = (optionIndex: number) => {
@@ -93,10 +115,53 @@ const PostCard = ({
       id: Date.now(),
       user: "나",
       content: newComment,
-      likes: 0
+      likes: 0,
+      replies: []
     };
     setComments(prev => [newCommentObj, ...prev]);
     setNewComment("");
+  };
+
+  const handleAddReply = (commentId: number) => {
+    if (!replyContent.trim()) return;
+    
+    const newReply = {
+      id: Date.now(),
+      user: "나",
+      content: replyContent,
+      likes: 0
+    };
+    
+    setComments(prev => prev.map(comment => 
+      comment.id === commentId
+        ? { ...comment, replies: [...comment.replies, newReply] }
+        : comment
+    ));
+    setReplyContent("");
+    setReplyTo(null);
+  };
+
+  const handleCommentLike = (commentId: number) => {
+    setComments(prev => prev.map(comment =>
+      comment.id === commentId
+        ? { ...comment, likes: comment.likes + 1 }
+        : comment
+    ));
+  };
+
+  const handleReplyLike = (commentId: number, replyId: number) => {
+    setComments(prev => prev.map(comment =>
+      comment.id === commentId
+        ? {
+            ...comment,
+            replies: comment.replies.map(reply =>
+              reply.id === replyId
+                ? { ...reply, likes: reply.likes + 1 }
+                : reply
+            )
+          }
+        : comment
+    ));
   };
 
   const totalPollVotes = Object.values(pollVotes).reduce((sum, votes) => sum + votes, 0);
@@ -195,20 +260,95 @@ const PostCard = ({
                 
                 <div className="space-y-4 mb-4">
                   {comments.map((comment) => (
-                    <div key={comment.id} className="flex gap-3">
-                      <Avatar className="h-9 w-9">
-                        <AvatarFallback className="bg-gradient-hero text-white text-sm">
-                          {comment.user.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <p className="font-semibold text-foreground text-sm">{comment.user}</p>
-                        <p className="text-foreground/90 text-sm mt-1">{comment.content}</p>
-                        <button className="text-xs text-muted-foreground hover:text-primary mt-1 flex items-center gap-1">
-                          <ThumbsUp className="h-3 w-3" />
-                          {comment.likes}
-                        </button>
+                    <div key={comment.id}>
+                      <div className="flex gap-3">
+                        <Avatar className="h-9 w-9">
+                          <AvatarFallback className="bg-gradient-hero text-white text-sm">
+                            {comment.user.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <p className="font-semibold text-foreground text-sm">{comment.user}</p>
+                          <p className="text-foreground/90 text-sm mt-1">{comment.content}</p>
+                          <div className="flex items-center gap-3 mt-2">
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleCommentLike(comment.id);
+                              }}
+                              className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1"
+                            >
+                              <ThumbsUp className="h-3 w-3" />
+                              {comment.likes}
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setReplyTo(replyTo === comment.id ? null : comment.id);
+                                setReplyContent("");
+                              }}
+                              className="text-xs text-muted-foreground hover:text-primary"
+                            >
+                              답글
+                            </button>
+                          </div>
+                        </div>
                       </div>
+
+                      {/* 대댓글 목록 */}
+                      {comment.replies.length > 0 && (
+                        <div className="ml-12 mt-3 space-y-3">
+                          {comment.replies.map((reply) => (
+                            <div key={reply.id} className="flex gap-3">
+                              <Avatar className="h-8 w-8">
+                                <AvatarFallback className="bg-gradient-hero text-white text-xs">
+                                  {reply.user.charAt(0)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1">
+                                <p className="font-semibold text-foreground text-sm">{reply.user}</p>
+                                <p className="text-foreground/90 text-sm mt-1">{reply.content}</p>
+                                <button 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleReplyLike(comment.id, reply.id);
+                                  }}
+                                  className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1 mt-1"
+                                >
+                                  <ThumbsUp className="h-3 w-3" />
+                                  {reply.likes}
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* 대댓글 작성 */}
+                      {replyTo === comment.id && (
+                        <div className="ml-12 mt-3 flex gap-2">
+                          <Textarea
+                            placeholder="답글을 작성해주세요..."
+                            value={replyContent}
+                            onChange={(e) => setReplyContent(e.target.value)}
+                            className="flex-1 min-h-[60px] resize-none text-sm"
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <div className="flex flex-col gap-2">
+                            <Button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleAddReply(comment.id);
+                              }}
+                              size="sm"
+                              className="h-[60px] w-[60px]"
+                            >
+                              <Send className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
