@@ -252,10 +252,75 @@ const PostCard = ({
             <>
               <Separator className="my-6" />
               
+              {/* 투표 섹션 (공식 게시물용) */}
+              {type !== "user" && attachments?.poll && (
+                <div className="mb-6">
+                  <h3 className="mb-4 text-lg font-bold text-foreground">📊 투표하기</h3>
+                  <p className="mb-4 text-sm text-foreground">{attachments.poll.question}</p>
+                  <div className="flex gap-0 rounded-full overflow-hidden h-14 border-2 border-border mb-3">
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handlePollVote(0);
+                      }}
+                      disabled={userVote !== null}
+                      className={`flex-1 flex items-center justify-center gap-2 font-bold transition-all ${
+                        userVote === 0
+                          ? "bg-[hsl(var(--demos-positive))] text-white" 
+                          : "bg-card hover:bg-secondary text-foreground"
+                      } ${userVote !== null ? "cursor-not-allowed" : "cursor-pointer"}`}
+                      style={
+                        userVote !== null 
+                          ? { width: `${getPercentage(0)}%` }
+                          : undefined
+                      }
+                    >
+                      <span className="text-xl">😊</span>
+                      <div className="flex flex-col items-center">
+                        <span className="text-sm">긍정적</span>
+                        {userVote !== null && (
+                          <span className="text-xs opacity-90">{getPercentage(0)}%</span>
+                        )}
+                      </div>
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handlePollVote(1);
+                      }}
+                      disabled={userVote !== null}
+                      className={`flex-1 flex items-center justify-center gap-2 font-bold transition-all ${
+                        userVote === 1
+                          ? "bg-[hsl(var(--demos-negative))] text-white" 
+                          : "bg-card hover:bg-secondary text-foreground"
+                      } ${userVote !== null ? "cursor-not-allowed" : "cursor-pointer"}`}
+                      style={
+                        userVote !== null 
+                          ? { width: `${getPercentage(1)}%` }
+                          : undefined
+                      }
+                    >
+                      <span className="text-xl">😞</span>
+                      <div className="flex flex-col items-center">
+                        <span className="text-sm">부정적</span>
+                        {userVote !== null && (
+                          <span className="text-xs opacity-90">{getPercentage(1)}%</span>
+                        )}
+                      </div>
+                    </button>
+                  </div>
+                  <p className="text-xs text-muted-foreground text-center">
+                    총 {totalPollVotes.toLocaleString()}명이 투표했습니다
+                  </p>
+                </div>
+              )}
+              
               <div className="mb-6">
                 <h3 className="mb-4 text-lg font-bold text-foreground flex items-center gap-2">
                   <MessageCircle className="h-5 w-5" />
-                  스레드 ({comments.length})
+                  {type === "user" ? "스레드" : "의견"} ({comments.length})
                 </h3>
                 
                 <div className="space-y-4 mb-4">
@@ -424,9 +489,7 @@ const PostCard = ({
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              if (type === "user") {
-                setIsExpanded(!isExpanded);
-              }
+              setIsExpanded(!isExpanded);
             }}
             className="flex items-center gap-1.5 hover:text-primary transition-colors"
           >
@@ -456,23 +519,13 @@ const PostCard = ({
     </div>
   );
 
-  if (type === "user") {
-    return (
-      <Card 
-        className="group border border-border bg-card hover:bg-card/80 transition-all rounded-2xl overflow-hidden cursor-pointer"
-        onClick={() => setIsExpanded(!isExpanded)}
-      >
-        {CardContent}
-      </Card>
-    );
-  }
-
   return (
-    <Link to={`/post/${id}#comments`}>
-      <Card className="group border border-border bg-card hover:bg-card/80 transition-all rounded-2xl overflow-hidden">
-        {CardContent}
-      </Card>
-    </Link>
+    <Card 
+      className="group border border-border bg-card hover:bg-card/80 transition-all rounded-2xl overflow-hidden cursor-pointer"
+      onClick={() => setIsExpanded(!isExpanded)}
+    >
+      {CardContent}
+    </Card>
   );
 };
 
