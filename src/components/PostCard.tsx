@@ -43,8 +43,8 @@ const PostCard = ({
   attachments,
 }: PostCardProps) => {
   return (
-    <Link to={`/post/${id}#comments`}>
-      <Card className="group border border-border bg-card hover:bg-card/80 transition-all rounded-2xl overflow-hidden">
+    <Card className="group border border-border bg-card hover:bg-card/80 transition-all rounded-2xl overflow-hidden">
+      <Link to={`/post/${id}#comments`} className="block">
         <div className="p-5">
           <div className="flex items-start gap-3 mb-3">
             <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-hero flex items-center justify-center text-white font-bold">
@@ -65,41 +65,81 @@ const PostCard = ({
             </div>
           </div>
 
-          <h3 className="mb-2 text-lg font-bold leading-snug text-foreground">
-            {title}
-          </h3>
-
-          <p className="mb-4 line-clamp-2 text-sm text-muted-foreground leading-relaxed">
-            {summary}
-          </p>
-
-          {attachments?.poll && (
-            <div className="mb-4 bg-muted/20 rounded-xl p-4 border border-border/50">
-              <p className="text-sm font-medium text-foreground mb-3">{attachments.poll.question}</p>
-              <div className="space-y-2">
-                {attachments.poll.options.map((option, idx) => {
-                  const percentage = ((option.votes / attachments.poll!.totalVotes) * 100).toFixed(0);
-                  return (
-                    <div
-                      key={idx}
-                      className="relative overflow-hidden rounded-lg border border-border bg-background p-3"
-                    >
-                      <div
-                        className="absolute left-0 top-0 h-full bg-primary/10 transition-all"
-                        style={{ width: `${percentage}%` }}
-                      />
-                      <div className="relative z-10 flex items-center justify-between">
-                        <span className="text-sm font-medium text-foreground">{option.text}</span>
-                        <span className="text-sm font-bold text-primary">{percentage}%</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-              <p className="text-xs text-muted-foreground mt-3 text-center">
-                {attachments.poll.totalVotes.toLocaleString()}명 참여
+          {type === "user" ? (
+            // 일반인 게시물 - 투표형 스타일
+            <>
+              <p className="mb-4 text-base text-foreground leading-relaxed whitespace-pre-wrap">
+                {summary}
               </p>
-            </div>
+
+              {attachments?.poll && (
+                <div className="mb-4 bg-background/50 rounded-2xl p-5 border border-border">
+                  <div className="space-y-3">
+                    {attachments.poll.options.map((option, idx) => {
+                      const percentage = ((option.votes / attachments.poll!.totalVotes) * 100).toFixed(0);
+                      return (
+                        <div
+                          key={idx}
+                          className="relative overflow-hidden rounded-xl border-2 border-border bg-card/50 p-4 hover:border-primary/50 transition-all"
+                        >
+                          <div
+                            className="absolute left-0 top-0 h-full bg-primary/5 transition-all"
+                            style={{ width: `${percentage}%` }}
+                          />
+                          <div className="relative z-10 flex items-center justify-between">
+                            <span className="text-base font-semibold text-foreground">{option.text}</span>
+                            <span className="text-base font-bold text-foreground">{percentage}%</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-4 text-center">
+                    {attachments.poll.totalVotes.toLocaleString()}명 참여
+                  </p>
+                </div>
+              )}
+            </>
+          ) : (
+            // 공식 게시물 - 기존 스타일
+            <>
+              <h3 className="mb-2 text-lg font-bold leading-snug text-foreground">
+                {title}
+              </h3>
+
+              <p className="mb-4 line-clamp-2 text-sm text-muted-foreground leading-relaxed">
+                {summary}
+              </p>
+
+              {attachments?.poll && (
+                <div className="mb-4 bg-muted/20 rounded-xl p-4 border border-border/50">
+                  <p className="text-sm font-medium text-foreground mb-3">{attachments.poll.question}</p>
+                  <div className="space-y-2">
+                    {attachments.poll.options.map((option, idx) => {
+                      const percentage = ((option.votes / attachments.poll!.totalVotes) * 100).toFixed(0);
+                      return (
+                        <div
+                          key={idx}
+                          className="relative overflow-hidden rounded-lg border border-border bg-background p-3"
+                        >
+                          <div
+                            className="absolute left-0 top-0 h-full bg-primary/10 transition-all"
+                            style={{ width: `${percentage}%` }}
+                          />
+                          <div className="relative z-10 flex items-center justify-between">
+                            <span className="text-sm font-medium text-foreground">{option.text}</span>
+                            <span className="text-sm font-bold text-primary">{percentage}%</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-3 text-center">
+                    {attachments.poll.totalVotes.toLocaleString()}명 참여
+                  </p>
+                </div>
+              )}
+            </>
           )}
 
           <div className="flex items-center justify-between gap-4 text-sm text-muted-foreground pt-2 border-t border-border/50">
@@ -120,8 +160,8 @@ const PostCard = ({
             </div>
           </div>
         </div>
-      </Card>
-    </Link>
+      </Link>
+    </Card>
   );
 };
 
