@@ -229,12 +229,14 @@ const PostDetail = () => {
     region: "서울"
   };
 
-  const [pollVotes, setPollVotes] = useState({
-    positive: currentPost.attachments?.poll?.options[0]?.votes || 523,
-    negative: currentPost.attachments?.poll?.options[1]?.votes || 412
-  });
+  const [pollVotes, setPollVotes] = useState(
+    currentPost.attachments?.poll?.options.reduce((acc, option, idx) => {
+      acc[idx] = option.votes;
+      return acc;
+    }, {} as Record<number, number>) || {}
+  );
 
-  const [userVote, setUserVote] = useState<"positive" | "negative" | null>(null);
+  const [userVote, setUserVote] = useState<number | null>(null);
 
   const [comments, setComments] = useState<Comment[]>([
     {
@@ -289,18 +291,20 @@ const PostDetail = () => {
     }
   ]);
 
-  const handlePollVote = (option: "positive" | "negative") => {
-    if (userVote) return; // 이미 투표함
+  const handlePollVote = (optionIndex: number) => {
+    if (userVote !== null) return; // 이미 투표함
     setPollVotes(prev => ({
       ...prev,
-      [option]: prev[option] + 1
+      [optionIndex]: (prev[optionIndex] || 0) + 1
     }));
-    setUserVote(option);
+    setUserVote(optionIndex);
   };
 
-  const totalPollVotes = pollVotes.positive + pollVotes.negative;
-  const positivePercent = ((pollVotes.positive / totalPollVotes) * 100).toFixed(1);
-  const negativePercent = ((pollVotes.negative / totalPollVotes) * 100).toFixed(1);
+  const totalPollVotes = Object.values(pollVotes).reduce((sum, votes) => sum + votes, 0);
+  const getPercentage = (optionIndex: number) => {
+    const votes = pollVotes[optionIndex] || 0;
+    return totalPollVotes > 0 ? ((votes / totalPollVotes) * 100).toFixed(1) : "0";
+  };
 
   const displayedOpinions = showAllOpinions ? mockExpertOpinions : mockExpertOpinions.slice(0, 3);
 
@@ -580,56 +584,107 @@ const PostDetail = () => {
             <h2 className="mb-6 text-2xl font-bold text-foreground">📊 투표하기</h2>
             <Card className="border-none bg-card shadow-sm rounded-2xl overflow-hidden">
               <div className="p-6">
-                <p className="mb-6 text-lg text-foreground">이 사안에 대한 당신의 입장은?</p>
-                <div className="flex gap-0 rounded-full overflow-hidden h-16 border-2 border-border mb-4">
-                  <button
-                    onClick={() => handlePollVote("positive")}
-                    disabled={userVote !== null}
-                    className={`flex-1 flex items-center justify-center gap-2 font-bold transition-all ${
-                      userVote === "positive" 
-                        ? "bg-[hsl(var(--demos-positive))] text-white" 
-                        : "bg-card hover:bg-secondary text-foreground"
-                    } ${userVote ? "cursor-not-allowed" : "cursor-pointer"}`}
-                    style={
-                      userVote !== null 
-                        ? { width: `${positivePercent}%` }
-                        : undefined
-                    }
-                  >
-                    <span className="text-2xl">😊</span>
-                    <div className="flex flex-col items-center">
-                      <span className="text-base">긍정적</span>
-                      {userVote && (
-                        <span className="text-sm opacity-90">{positivePercent}%</span>
-                      )}
+                {isUserPost && currentPost.attachments?.poll ? (
+                  // 일반인 게시물 - 커스텀 옵션
+                  <>
+                    <div className="space-y-3 mb-4">
+                      {currentPost.attachments.poll.options.map((option, idx) => {
+                        const percentage = getPercentage(idx);
+                        const isVoted = userVote !== null;
+                        const isSelected = userVote === idx;
+                        
+                        return (
+                          <button
+                            key={idx}
+                            onClick={() => handlePollVote(idx)}
+                            disabled={isVoted}
+                            className={`w-full relative overflow-hidden rounded-2xl border-2 p-4 transition-all ${
+                              isSelected
+                                ? "border-primary bg-primary/10"
+                                : isVoted
+                                ? "border-border bg-card/50 cursor-not-allowed"
+                                : "border-border bg-card hover:border-primary/50 hover:bg-card/80 cursor-pointer"
+                            }`}
+                          >
+                            {isVoted && (
+                              <div
+                                className="absolute left-0 top-0 h-full bg-primary/5 transition-all"
+                                style={{ width: `${percentage}%` }}
+                              />
+                            )}
+                            <div className="relative z-10 flex items-center justify-between">
+                              <span className={`text-base font-semibold ${isSelected ? "text-primary" : "text-foreground"}`}>
+                                {option.text}
+                              </span>
+                              {isVoted && (
+                                <span className={`text-base font-bold ${isSelected ? "text-primary" : "text-foreground"}`}>
+                                  {percentage}%
+                                </span>
+                              )}
+                            </div>
+                          </button>
+                        );
+                      })}
                     </div>
-                  </button>
-                  <button
-                    onClick={() => handlePollVote("negative")}
-                    disabled={userVote !== null}
-                    className={`flex-1 flex items-center justify-center gap-2 font-bold transition-all ${
-                      userVote === "negative" 
-                        ? "bg-[hsl(var(--demos-negative))] text-white" 
-                        : "bg-card hover:bg-secondary text-foreground"
-                    } ${userVote ? "cursor-not-allowed" : "cursor-pointer"}`}
-                    style={
-                      userVote !== null 
-                        ? { width: `${negativePercent}%` }
-                        : undefined
-                    }
-                  >
-                    <span className="text-2xl">😞</span>
-                    <div className="flex flex-col items-center">
-                      <span className="text-base">부정적</span>
-                      {userVote && (
-                        <span className="text-sm opacity-90">{negativePercent}%</span>
-                      )}
+                    <p className="text-xs text-muted-foreground text-center">
+                      {userVote !== null ? `총 ${totalPollVotes.toLocaleString()}명이 투표했습니다` : "투표에 참여해주세요"}
+                    </p>
+                  </>
+                ) : (
+                  // 공식 게시물 - 긍정적/부정적
+                  <>
+                    <p className="mb-6 text-lg text-foreground">이 사안에 대한 당신의 입장은?</p>
+                    <div className="flex gap-0 rounded-full overflow-hidden h-16 border-2 border-border mb-4">
+                      <button
+                        onClick={() => handlePollVote(0)}
+                        disabled={userVote !== null}
+                        className={`flex-1 flex items-center justify-center gap-2 font-bold transition-all ${
+                          userVote === 0
+                            ? "bg-[hsl(var(--demos-positive))] text-white" 
+                            : "bg-card hover:bg-secondary text-foreground"
+                        } ${userVote !== null ? "cursor-not-allowed" : "cursor-pointer"}`}
+                        style={
+                          userVote !== null 
+                            ? { width: `${getPercentage(0)}%` }
+                            : undefined
+                        }
+                      >
+                        <span className="text-2xl">😊</span>
+                        <div className="flex flex-col items-center">
+                          <span className="text-base">긍정적</span>
+                          {userVote !== null && (
+                            <span className="text-sm opacity-90">{getPercentage(0)}%</span>
+                          )}
+                        </div>
+                      </button>
+                      <button
+                        onClick={() => handlePollVote(1)}
+                        disabled={userVote !== null}
+                        className={`flex-1 flex items-center justify-center gap-2 font-bold transition-all ${
+                          userVote === 1
+                            ? "bg-[hsl(var(--demos-negative))] text-white" 
+                            : "bg-card hover:bg-secondary text-foreground"
+                        } ${userVote !== null ? "cursor-not-allowed" : "cursor-pointer"}`}
+                        style={
+                          userVote !== null 
+                            ? { width: `${getPercentage(1)}%` }
+                            : undefined
+                        }
+                      >
+                        <span className="text-2xl">😞</span>
+                        <div className="flex flex-col items-center">
+                          <span className="text-base">부정적</span>
+                          {userVote !== null && (
+                            <span className="text-sm opacity-90">{getPercentage(1)}%</span>
+                          )}
+                        </div>
+                      </button>
                     </div>
-                  </button>
-                </div>
-                <p className="text-sm text-muted-foreground text-center mt-3">
-                  총 {totalPollVotes.toLocaleString()}명이 투표했습니다
-                </p>
+                    <p className="text-sm text-muted-foreground text-center mt-3">
+                      총 {totalPollVotes.toLocaleString()}명이 투표했습니다
+                    </p>
+                  </>
+                )}
               </div>
             </Card>
           </div>
