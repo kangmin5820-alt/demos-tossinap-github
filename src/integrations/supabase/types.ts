@@ -14,7 +14,125 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      comments: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          likes: number | null
+          parent_comment_id: string | null
+          post_id: string
+          user_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          likes?: number | null
+          parent_comment_id?: string | null
+          post_id: string
+          user_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          likes?: number | null
+          parent_comment_id?: string | null
+          post_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      poll_options: {
+        Row: {
+          created_at: string
+          id: string
+          option_text: string
+          post_id: string
+          votes: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          option_text: string
+          post_id: string
+          votes?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          option_text?: string
+          post_id?: string
+          votes?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "poll_options_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      posts: {
+        Row: {
+          category: string | null
+          content: string
+          created_at: string
+          id: string
+          is_official: boolean | null
+          likes: number | null
+          title: string | null
+          type: string
+          updated_at: string
+          user_id: string | null
+          views: number | null
+        }
+        Insert: {
+          category?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          is_official?: boolean | null
+          likes?: number | null
+          title?: string | null
+          type?: string
+          updated_at?: string
+          user_id?: string | null
+          views?: number | null
+        }
+        Update: {
+          category?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          is_official?: boolean | null
+          likes?: number | null
+          title?: string | null
+          type?: string
+          updated_at?: string
+          user_id?: string | null
+          views?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
