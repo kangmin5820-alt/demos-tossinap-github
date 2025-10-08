@@ -15,15 +15,10 @@ import {
 import {
   ThumbsUp,
   MessageCircle,
-  Eye,
   Send,
   ChevronLeft,
-  ChevronDown,
-  Calculator,
-  FileText,
-  Target,
-  Sparkles,
 } from "lucide-react";
+import PolicyCalculator from "@/components/PolicyCalculator";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -102,6 +97,7 @@ const PostDetail = () => {
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState("");
   const [showExperts, setShowExperts] = useState(false);
+  const [showCalculator, setShowCalculator] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -386,11 +382,6 @@ const PostDetail = () => {
               {mockExpertOpinions.slice(0, showExperts ? mockExpertOpinions.length : 1).map((expert) => (
                 <Card key={expert.id} className="p-4 bg-muted/50 border-0">
                   <div className="flex items-start gap-3">
-                    <Avatar className="h-10 w-10 bg-yellow-500">
-                      <AvatarFallback className="bg-yellow-500 text-black font-medium">
-                        {expert.name[0]}
-                      </AvatarFallback>
-                    </Avatar>
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="font-semibold text-sm">{expert.name}</span>
@@ -432,6 +423,7 @@ const PostDetail = () => {
             </div>
             <Button 
               className="w-full bg-yellow-500 hover:bg-yellow-600 text-black h-12 font-medium border-0"
+              onClick={() => setShowCalculator(true)}
             >
               📋 영향 계산하기
             </Button>
@@ -641,6 +633,8 @@ const PostDetail = () => {
           </div>
         </div>
       </main>
+
+      {showCalculator && <PolicyCalculator onClose={() => setShowCalculator(false)} />}
     </div>
   );
 };

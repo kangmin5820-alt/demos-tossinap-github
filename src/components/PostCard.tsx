@@ -481,22 +481,26 @@ const PostCard = ({
                 ))}
               </div>
               <div className="flex gap-2">
-                <Link 
-                  to={`/post/${id}`}
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    window.location.href = `/post/${id}`;
+                  }}
                   className="flex-1 bg-primary hover:bg-primary/90 text-white rounded-xl py-3 px-4 text-sm font-bold transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
-                  onClick={(e) => e.stopPropagation()}
                 >
                   <span>📊</span>
                   투표하고 결과 보기
-                </Link>
-                <Link 
-                  to={`/post/${id}#comments`}
+                </button>
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    window.location.href = `/post/${id}`;
+                  }}
                   className="flex-1 bg-card hover:bg-card/80 border-2 border-primary/30 text-foreground rounded-xl py-3 px-4 text-sm font-bold transition-all flex items-center justify-center gap-2"
-                  onClick={(e) => e.stopPropagation()}
                 >
                   <span>💬</span>
                   의견 보기
-                </Link>
+                </button>
               </div>
               <p className="text-xs text-center text-muted-foreground mt-3 font-medium">
                 🔥 {attachments.poll.totalVotes.toLocaleString()}명이 참여 중
