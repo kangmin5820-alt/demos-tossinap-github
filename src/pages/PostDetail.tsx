@@ -405,170 +405,174 @@ const PostDetail = () => {
             </div>
           </Card>
 
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
-                <Sparkles className="h-6 w-6 text-primary" />
-                다양한 관점의 목소리
-              </h2>
-            </div>
-            <div className="space-y-3">
-              {displayedOpinions.map((expert, idx) => (
-                <Card key={idx} className="border-none bg-card shadow-sm hover:shadow-md transition-all rounded-2xl overflow-hidden">
-                  <div className="p-4">
-                    <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0">
-                        <div className="w-12 h-12 rounded-full bg-gradient-hero flex items-center justify-center">
-                          <User className="h-6 w-6 text-white" />
+          {!isUserPost && (
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
+                  <Sparkles className="h-6 w-6 text-primary" />
+                  다양한 관점의 목소리
+                </h2>
+              </div>
+              <div className="space-y-3">
+                {displayedOpinions.map((expert, idx) => (
+                  <Card key={idx} className="border-none bg-card shadow-sm hover:shadow-md transition-all rounded-2xl overflow-hidden">
+                    <div className="p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0">
+                          <div className="w-12 h-12 rounded-full bg-gradient-hero flex items-center justify-center">
+                            <User className="h-6 w-6 text-white" />
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h4 className="font-bold text-foreground text-[15px]">{expert.name}</h4>
-                          <Badge className="bg-primary/10 text-primary border-primary/20 text-xs px-2 py-0">
-                            {expert.role}
-                          </Badge>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-bold text-foreground text-[15px]">{expert.name}</h4>
+                            <Badge className="bg-primary/10 text-primary border-primary/20 text-xs px-2 py-0">
+                              {expert.role}
+                            </Badge>
+                          </div>
+                          <p className="text-foreground/90 text-[14px] leading-relaxed mb-3">
+                            "{expert.opinion}"
+                          </p>
+                          <a 
+                            href={expert.url}
+                            className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors group"
+                          >
+                            <span>{expert.source}</span>
+                            <ExternalLink className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
+                          </a>
                         </div>
-                        <p className="text-foreground/90 text-[14px] leading-relaxed mb-3">
-                          "{expert.opinion}"
-                        </p>
-                        <a 
-                          href={expert.url}
-                          className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors group"
-                        >
-                          <span>{expert.source}</span>
-                          <ExternalLink className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
-                        </a>
                       </div>
                     </div>
-                  </div>
-                </Card>
-              ))}
-              
-              {mockExpertOpinions.length > 3 && (
-                <Button
-                  variant="outline"
-                  className="w-full rounded-xl"
-                  onClick={() => setShowAllOpinions(!showAllOpinions)}
-                >
-                  {showAllOpinions ? "접기" : `더보기 (${mockExpertOpinions.length - 3}개 더)`}
-                  <ChevronDown className={`ml-2 h-4 w-4 transition-transform ${showAllOpinions ? "rotate-180" : ""}`} />
-                </Button>
-              )}
-            </div>
-          </div>
-
-          <Card className="mb-8 border border-border bg-card shadow-sm rounded-3xl overflow-hidden">
-            <div className="p-6">
-              <div className="flex items-start gap-3 mb-4">
-                <div className="p-2.5 rounded-xl bg-primary/10">
-                  <Calculator className="h-6 w-6 text-primary" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-xl font-bold text-foreground">정책 영향 계산기</h3>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    이 정책이 나에게 미치는 영향을 확인해보세요
-                  </p>
-                </div>
+                  </Card>
+                ))}
+                
+                {mockExpertOpinions.length > 3 && (
+                  <Button
+                    variant="outline"
+                    className="w-full rounded-xl"
+                    onClick={() => setShowAllOpinions(!showAllOpinions)}
+                  >
+                    {showAllOpinions ? "접기" : `더보기 (${mockExpertOpinions.length - 3}개 더)`}
+                    <ChevronDown className={`ml-2 h-4 w-4 transition-transform ${showAllOpinions ? "rotate-180" : ""}`} />
+                  </Button>
+                )}
               </div>
-              
-              {!showImpactCalculator ? (
-                <Button
-                  onClick={() => setShowImpactCalculator(true)}
-                  className="w-full rounded-xl h-12 text-base"
-                >
-                  <Calculator className="h-5 w-5 mr-2" />
-                  영향 계산해보기
-                </Button>
-              ) : (
-                <>
-                  <div className="mb-4 p-3 bg-muted/30 rounded-xl">
-                    <p className="text-sm text-muted-foreground">
-                      {mockUser.age}세 · {mockUser.gender} · {mockUser.occupation} · {mockUser.region}
+            </div>
+          )}
+
+          {!isUserPost && (
+            <Card className="mb-8 border border-border bg-card shadow-sm rounded-3xl overflow-hidden">
+              <div className="p-6">
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="p-2.5 rounded-xl bg-primary/10">
+                    <Calculator className="h-6 w-6 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold text-foreground">정책 영향 계산기</h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      이 정책이 나에게 미치는 영향을 확인해보세요
                     </p>
                   </div>
-                  
-                  <div className="space-y-3">
-                    <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-4">
-                      <div className="flex items-start gap-3">
-                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center">
-                          <span className="text-red-500 font-bold text-lg">!</span>
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h4 className="font-bold text-foreground">직접 영향도</h4>
-                            <Badge className="bg-red-500 text-white">매우 높음</Badge>
-                          </div>
-                          <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-                            방송PD로서 방송통신위원회의 정책 결정은 업무 환경과 편집 독립성에 직접적인 영향을 미칩니다.
-                          </p>
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between text-sm">
-                              <span className="text-muted-foreground">편집 자율성</span>
-                              <span className="font-semibold text-red-500">-35%</span>
-                            </div>
-                            <div className="h-2 bg-background rounded-full overflow-hidden">
-                              <div className="h-full bg-red-500 w-[35%]"></div>
-                            </div>
-                          </div>
-                          <div className="mt-3 space-y-2">
-                            <div className="flex items-center justify-between text-sm">
-                              <span className="text-muted-foreground">콘텐츠 검열 가능성</span>
-                              <span className="font-semibold text-red-500">+42%</span>
-                            </div>
-                            <div className="h-2 bg-background rounded-full overflow-hidden">
-                              <div className="h-full bg-red-500 w-[42%]"></div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                </div>
+                
+                {!showImpactCalculator ? (
+                  <Button
+                    onClick={() => setShowImpactCalculator(true)}
+                    className="w-full rounded-xl h-12 text-base"
+                  >
+                    <Calculator className="h-5 w-5 mr-2" />
+                    영향 계산해보기
+                  </Button>
+                ) : (
+                  <>
+                    <div className="mb-4 p-3 bg-muted/30 rounded-xl">
+                      <p className="text-sm text-muted-foreground">
+                        {mockUser.age}세 · {mockUser.gender} · {mockUser.occupation} · {mockUser.region}
+                      </p>
                     </div>
                     
-                    <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-2xl p-4">
-                      <div className="flex items-start gap-3">
-                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center">
-                          <span className="text-yellow-500 font-bold text-lg">!</span>
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h4 className="font-bold text-foreground">간접 영향도</h4>
-                            <Badge className="bg-yellow-500 text-white">중간</Badge>
+                    <div className="space-y-3">
+                      <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center">
+                            <span className="text-red-500 font-bold text-lg">!</span>
                           </div>
-                          <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-                            서울 거주 20대 여성으로서 미디어 접근성과 정보의 다양성에 영향을 받을 수 있습니다.
-                          </p>
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between text-sm">
-                              <span className="text-muted-foreground">정보 다양성</span>
-                              <span className="font-semibold text-yellow-500">-18%</span>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <h4 className="font-bold text-foreground">직접 영향도</h4>
+                              <Badge className="bg-red-500 text-white">매우 높음</Badge>
                             </div>
-                            <div className="h-2 bg-background rounded-full overflow-hidden">
-                              <div className="h-full bg-yellow-500 w-[18%]"></div>
+                            <p className="text-sm text-muted-foreground leading-relaxed mb-3">
+                              방송PD로서 방송통신위원회의 정책 결정은 업무 환경과 편집 독립성에 직접적인 영향을 미칩니다.
+                            </p>
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between text-sm">
+                                <span className="text-muted-foreground">편집 자율성</span>
+                                <span className="font-semibold text-red-500">-35%</span>
+                              </div>
+                              <div className="h-2 bg-background rounded-full overflow-hidden">
+                                <div className="h-full bg-red-500 w-[35%]"></div>
+                              </div>
+                            </div>
+                            <div className="mt-3 space-y-2">
+                              <div className="flex items-center justify-between text-sm">
+                                <span className="text-muted-foreground">콘텐츠 검열 가능성</span>
+                                <span className="font-semibold text-red-500">+42%</span>
+                              </div>
+                              <div className="h-2 bg-background rounded-full overflow-hidden">
+                                <div className="h-full bg-red-500 w-[42%]"></div>
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
-                    </div>
+                      
+                      <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-2xl p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center">
+                            <span className="text-yellow-500 font-bold text-lg">!</span>
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <h4 className="font-bold text-foreground">간접 영향도</h4>
+                              <Badge className="bg-yellow-500 text-white">중간</Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground leading-relaxed mb-3">
+                              서울 거주 20대 여성으로서 미디어 접근성과 정보의 다양성에 영향을 받을 수 있습니다.
+                            </p>
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between text-sm">
+                                <span className="text-muted-foreground">정보 다양성</span>
+                                <span className="font-semibold text-yellow-500">-18%</span>
+                              </div>
+                              <div className="h-2 bg-background rounded-full overflow-hidden">
+                                <div className="h-full bg-yellow-500 w-[18%]"></div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
 
-                    <div className="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-4">
-                      <div className="flex items-start gap-3">
-                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
-                          <span className="text-blue-500 font-bold text-lg">i</span>
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="font-bold text-foreground mb-2">장기적 영향</h4>
-                          <p className="text-sm text-muted-foreground leading-relaxed">
-                            향후 5년간 미디어 산업 전반의 구조 변화가 예상됩니다. 
-                            방송 제작 환경과 콘텐츠 규제 기준이 재편될 가능성이 높습니다.
-                          </p>
+                      <div className="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
+                            <span className="text-blue-500 font-bold text-lg">i</span>
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-bold text-foreground mb-2">장기적 영향</h4>
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                              향후 5년간 미디어 산업 전반의 구조 변화가 예상됩니다. 
+                              방송 제작 환경과 콘텐츠 규제 기준이 재편될 가능성이 높습니다.
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </>
-              )}
-            </div>
-          </Card>
+                  </>
+                )}
+              </div>
+            </Card>
+          )}
 
           <Separator className="my-8" />
 
