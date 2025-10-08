@@ -26,7 +26,9 @@ import {
   Frown,
   User,
   Sparkles,
+  Send,
 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 
 interface ExpertOpinion {
   name: string;
@@ -101,6 +103,9 @@ const PostDetail = () => {
   const { id } = useParams();
   const [showAllOpinions, setShowAllOpinions] = useState(false);
   const [showImpactCalculator, setShowImpactCalculator] = useState(false);
+  const [newComment, setNewComment] = useState("");
+  const [replyTo, setReplyTo] = useState<number | null>(null);
+  const [replyContent, setReplyContent] = useState("");
   
   // Mock user data (로그인되어 있다고 가정)
   const mockUser = {
@@ -109,6 +114,9 @@ const PostDetail = () => {
     occupation: "방송PD",
     region: "서울"
   };
+
+  // 일반인 게시물인지 확인 (id가 4 이상이면 일반인 게시물로 가정)
+  const isUserPost = id && parseInt(id) >= 4;
 
   const [pollVotes, setPollVotes] = useState({
     positive: 523,
@@ -217,6 +225,45 @@ const PostDetail = () => {
 
   const topComment = sortedComments[0]; // 대표의견
 
+  const handleAddComment = () => {
+    if (!newComment.trim()) return;
+    
+    const newCommentObj: Comment = {
+      id: Date.now(),
+      user: "나",
+      avatar: "",
+      content: newComment,
+      likes: 0,
+      replies: []
+    };
+    
+    setComments(prev => [newCommentObj, ...prev]);
+    setNewComment("");
+  };
+
+  const handleAddReply = (commentId: number) => {
+    if (!replyContent.trim()) return;
+    
+    const newReply = {
+      id: Date.now(),
+      user: "나",
+      avatar: "",
+      content: replyContent,
+      type: "뒷받침" as const,
+      likes: 0
+    };
+    
+    setComments(prev =>
+      prev.map(comment =>
+        comment.id === commentId
+          ? { ...comment, replies: [...comment.replies, newReply] }
+          : comment
+      )
+    );
+    setReplyContent("");
+    setReplyTo(null);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -224,9 +271,9 @@ const PostDetail = () => {
       <main className="container py-8">
         <article className="mx-auto max-w-4xl">
           <div className="mb-6">
-            <Badge className="mb-4">데모스 공식</Badge>
+            <Badge className="mb-4">{isUserPost ? "일반 사용자" : "데모스 공식"}</Badge>
             <h1 className="mb-4 text-4xl font-bold leading-tight text-foreground">
-              이진숙 체포적부심사에 대한 논쟁
+              {isUserPost ? "데모스 플랫폼 사용 후기 및 개선 제안" : "이진숙 체포적부심사에 대한 논쟁"}
             </h1>
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
               <span>2024년 3월 15일</span>
@@ -240,12 +287,12 @@ const PostDetail = () => {
 
           <Card className="mb-8 border-none bg-card shadow-sm rounded-2xl">
             <div className="p-6">
-              <h2 className="mb-3 text-xl font-bold text-foreground">📋 핵심 요약</h2>
+              <h2 className="mb-3 text-xl font-bold text-foreground">📋 {isUserPost ? "내용" : "핵심 요약"}</h2>
               <p className="leading-relaxed text-foreground">
-                방송통신위원회 이진숙 위원장 후보자에 대한 체포적부심사가 오늘 오후 진행됩니다.
-                이번 사건은 방송 장악 의혹과 대통령의 예능 프로그램 출연을 둘러싼
-                정치적 논란이 맞물려 있습니다. 진보와 보수 진영은 각각 다른 관점에서
-                이 사안을 바라보고 있으며, 향후 방송 정책에 미칠 영향이 주목됩니다.
+                {isUserPost 
+                  ? "데모스 플랫폼을 사용해본 지 한 달이 지났습니다. 전반적으로 정치 이슈를 다양한 관점에서 볼 수 있어서 좋았지만, 몇 가지 개선되었으면 하는 부분이 있어 글을 남깁니다. 특히 모바일 UX와 알림 기능 부분에서 불편함을 느꼈습니다."
+                  : "방송통신위원회 이진숙 위원장 후보자에 대한 체포적부심사가 오늘 오후 진행됩니다. 이번 사건은 방송 장악 의혹과 대통령의 예능 프로그램 출연을 둘러싼 정치적 논란이 맞물려 있습니다. 진보와 보수 진영은 각각 다른 관점에서 이 사안을 바라보고 있으며, 향후 방송 정책에 미칠 영향이 주목됩니다."
+                }
               </p>
             </div>
           </Card>
@@ -481,7 +528,7 @@ const PostDetail = () => {
             <div className="p-6">
               <h3 className="mb-6 text-xl font-bold text-foreground flex items-center gap-2">
                 <MessageCircle className="h-5 w-5" />
-                의견 ({comments.length})
+                {isUserPost ? "스레드" : "의견"} ({comments.length})
               </h3>
 
               <div className="space-y-6 mb-6">
@@ -497,7 +544,7 @@ const PostDetail = () => {
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <p className="font-semibold text-foreground text-[15px]">{comment.user}</p>
-                          {comment.id === topComment.id && (
+                          {!isUserPost && comment.id === topComment.id && (
                             <Badge className="bg-primary/20 text-primary border-primary/30 text-xs px-2 py-0">
                               대표의견
                             </Badge>
@@ -516,11 +563,59 @@ const PostDetail = () => {
                             <Heart className="h-[17px] w-[17px] mr-1.5 text-muted-foreground group-hover:text-red-500 group-hover:fill-red-500 transition-all" />
                             <span className="text-[13px] text-muted-foreground group-hover:text-red-500 transition-colors font-medium">{comment.likes.toLocaleString()}</span>
                           </Button>
-                          <Button variant="ghost" size="sm" className="h-8 rounded-full px-3 hover:bg-muted/50 group">
-                            <MessageCircle className="h-[17px] w-[17px] mr-1.5 text-muted-foreground group-hover:text-foreground transition-colors" />
-                            <span className="text-[13px] text-muted-foreground group-hover:text-foreground transition-colors">답글</span>
-                          </Button>
+                          {isUserPost && (
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-8 rounded-full px-3 hover:bg-muted/50 group"
+                              onClick={() => setReplyTo(replyTo === comment.id ? null : comment.id)}
+                            >
+                              <MessageCircle className="h-[17px] w-[17px] mr-1.5 text-muted-foreground group-hover:text-foreground transition-colors" />
+                              <span className="text-[13px] text-muted-foreground group-hover:text-foreground transition-colors">답글</span>
+                            </Button>
+                          )}
                         </div>
+
+                        {replyTo === comment.id && isUserPost && (
+                          <div className="mt-4 ml-8 flex gap-3">
+                            <Avatar className="h-9 w-9">
+                              <AvatarFallback className="bg-gradient-hero text-white text-xs font-semibold">
+                                나
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1">
+                              <Textarea
+                                value={replyContent}
+                                onChange={(e) => setReplyContent(e.target.value)}
+                                className="resize-none rounded-xl text-sm"
+                                rows={2}
+                                placeholder="답글을 입력하세요..."
+                              />
+                              <div className="mt-2 flex justify-end gap-2">
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="rounded-full"
+                                  onClick={() => {
+                                    setReplyTo(null);
+                                    setReplyContent("");
+                                  }}
+                                >
+                                  취소
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  className="rounded-full"
+                                  onClick={() => handleAddReply(comment.id)}
+                                  disabled={!replyContent.trim()}
+                                >
+                                  <Send className="h-4 w-4 mr-1" />
+                                  작성
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
 
                         {comment.replies.length > 0 && (
                           <div className="mt-4 space-y-4 pl-3 ml-8 border-l border-border/50">
@@ -535,17 +630,19 @@ const PostDetail = () => {
                                 <div className="flex-1">
                                   <div className="flex items-center gap-2">
                                     <p className="font-semibold text-foreground text-[14px]">{reply.user}</p>
-                                    <Badge
-                                      className={`text-[11px] px-2 py-0 ${
-                                        reply.type === "반론"
-                                          ? "bg-red-500/20 text-red-500 border-red-500/30"
-                                          : reply.type === "뒷받침"
-                                          ? "bg-blue-500/20 text-blue-500 border-blue-500/30"
-                                          : "bg-green-500/20 text-green-500 border-green-500/30"
-                                      }`}
-                                    >
-                                      {reply.type}
-                                    </Badge>
+                                    {!isUserPost && (
+                                      <Badge
+                                        className={`text-[11px] px-2 py-0 ${
+                                          reply.type === "반론"
+                                            ? "bg-red-500/20 text-red-500 border-red-500/30"
+                                            : reply.type === "뒷받침"
+                                            ? "bg-blue-500/20 text-blue-500 border-blue-500/30"
+                                            : "bg-green-500/20 text-green-500 border-green-500/30"
+                                        }`}
+                                      >
+                                        {reply.type}
+                                      </Badge>
+                                    )}
                                   </div>
                                    <p className="text-foreground/90 mt-1.5 text-[14px] leading-relaxed">
                                     {reply.content}
@@ -579,13 +676,22 @@ const PostDetail = () => {
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
-                  <textarea
-                    className="w-full resize-none rounded-2xl border border-border bg-background p-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary/30 transition-all"
+                  <Textarea
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    className="resize-none rounded-2xl"
                     rows={3}
-                    placeholder="의견을 남겨주세요..."
+                    placeholder={isUserPost ? "스레드에 참여하세요..." : "의견을 남겨주세요..."}
                   />
                   <div className="mt-3 flex justify-end">
-                    <Button className="rounded-full px-6">의견 작성</Button>
+                    <Button 
+                      className="rounded-full px-6"
+                      onClick={handleAddComment}
+                      disabled={!newComment.trim()}
+                    >
+                      <Send className="h-4 w-4 mr-2" />
+                      {isUserPost ? "스레드 작성" : "의견 작성"}
+                    </Button>
                   </div>
                 </div>
               </div>
