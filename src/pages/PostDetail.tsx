@@ -22,54 +22,64 @@ import {
   Lightbulb,
   Target,
   Shield,
+  Smile,
+  Frown,
+  User,
+  Sparkles,
 } from "lucide-react";
 
-interface Perspective {
-  stance: "progressive" | "conservative" | "neutral";
-  title: string;
-  summary: string;
-  articles: Array<{ title: string; source: string; url: string }>;
+interface ExpertOpinion {
+  name: string;
+  role: string;
+  opinion: string;
+  source: string;
+  url: string;
 }
 
-const mockPerspectives: Perspective[] = [
+const mockExpertOpinions: ExpertOpinion[] = [
   {
-    stance: "progressive",
-    title: "진보 진영 목소리",
-    summary: "방송통신위원회의 독립성과 공정성을 강조하며, 이진숙 후보자의 체포영장 청구가 정당한 절차라고 주장합니다.",
-    articles: [
-      { title: "체포영장 청구, 공정한 수사의 시작", source: "한겨레", url: "#" },
-      { title: "방송 장악 시도에 제동", source: "경향신문", url: "#" },
-    ],
+    name: "김영수",
+    role: "미디어 법률 전문가",
+    opinion: "방송 독립성은 민주주의의 핵심입니다. 이번 사안은 단순한 개인 문제가 아니라 제도적 문제로 접근해야 합니다.",
+    source: "JTBC 뉴스룸",
+    url: "#"
   },
   {
-    stance: "conservative",
-    title: "보수 진영 목소리",
-    summary: "정치적 표적 수사라고 비판하며, 야당의 과도한 압박이 문제라고 지적합니다.",
-    articles: [
-      { title: "정치 검찰의 표적 수사", source: "조선일보", url: "#" },
-      { title: "야당의 무리한 압박", source: "동아일보", url: "#" },
-    ],
+    name: "이민호",
+    role: "정치 평론가",
+    opinion: "정치적 중립성을 지키는 것이 무엇보다 중요합니다. 양측의 주장을 면밀히 검토해야 합니다.",
+    source: "MBC 100분토론",
+    url: "#"
   },
   {
-    stance: "neutral",
-    title: "중립 관점",
-    summary: "법적 절차에 따라 진행되는 사안으로, 양측의 주장을 균형있게 전달합니다.",
-    articles: [
-      { title: "체포영장 심사 절차 분석", source: "중앙일보", url: "#" },
-    ],
+    name: "박지연",
+    role: "시사 유튜버 (구독자 120만)",
+    opinion: "국민의 알 권리와 방송의 자유는 보장되어야 합니다. 이는 우리 모두의 문제입니다.",
+    source: "YouTube @박지연의정치이야기",
+    url: "#"
   },
-];
-
-const getStanceColor = (stance: string) => {
-  switch (stance) {
-    case "progressive":
-      return "bg-demos-blue text-white";
-    case "conservative":
-      return "bg-demos-red text-white";
-    default:
-      return "bg-demos-neutral text-white";
+  {
+    name: "최태영",
+    role: "전 국회의원",
+    opinion: "법적 절차를 존중하되, 정치적 맥락을 무시할 수 없습니다. 신중한 접근이 필요합니다.",
+    source: "조선일보 칼럼",
+    url: "#"
+  },
+  {
+    name: "정수민",
+    role: "언론학 교수",
+    opinion: "역사적으로 방송 장악 시도는 언론 자유를 심각하게 훼손했습니다. 경계가 필요합니다.",
+    source: "한겨레 기고문",
+    url: "#"
+  },
+  {
+    name: "강민수",
+    role: "방송인",
+    opinion: "현장에서 일하는 사람으로서 방송 독립성은 절대 타협할 수 없는 가치입니다.",
+    source: "KBS 시사기획창",
+    url: "#"
   }
-};
+];
 
 interface Comment {
   id: number;
@@ -89,7 +99,8 @@ interface Comment {
 
 const PostDetail = () => {
   const { id } = useParams();
-  const [openPerspectives, setOpenPerspectives] = useState<string[]>(["progressive"]);
+  const [showAllOpinions, setShowAllOpinions] = useState(false);
+  const [showImpactCalculator, setShowImpactCalculator] = useState(false);
   
   // Mock user data (로그인되어 있다고 가정)
   const mockUser = {
@@ -100,12 +111,11 @@ const PostDetail = () => {
   };
 
   const [pollVotes, setPollVotes] = useState({
-    support: 342,
-    oppose: 289,
-    neutral: 156
+    positive: 523,
+    negative: 412
   });
 
-  const [userVote, setUserVote] = useState<"support" | "oppose" | "neutral" | null>(null);
+  const [userVote, setUserVote] = useState<"positive" | "negative" | null>(null);
 
   const [comments, setComments] = useState<Comment[]>([
     {
@@ -160,13 +170,7 @@ const PostDetail = () => {
     }
   ]);
 
-  const togglePerspective = (stance: string) => {
-    setOpenPerspectives((prev) =>
-      prev.includes(stance) ? prev.filter((s) => s !== stance) : [...prev, stance]
-    );
-  };
-
-  const handlePollVote = (option: "support" | "oppose" | "neutral") => {
+  const handlePollVote = (option: "positive" | "negative") => {
     if (userVote) return; // 이미 투표함
     setPollVotes(prev => ({
       ...prev,
@@ -175,10 +179,11 @@ const PostDetail = () => {
     setUserVote(option);
   };
 
-  const totalPollVotes = pollVotes.support + pollVotes.oppose + pollVotes.neutral;
-  const supportPercent = ((pollVotes.support / totalPollVotes) * 100).toFixed(1);
-  const opposePercent = ((pollVotes.oppose / totalPollVotes) * 100).toFixed(1);
-  const neutralPercent = ((pollVotes.neutral / totalPollVotes) * 100).toFixed(1);
+  const totalPollVotes = pollVotes.positive + pollVotes.negative;
+  const positivePercent = ((pollVotes.positive / totalPollVotes) * 100).toFixed(1);
+  const negativePercent = ((pollVotes.negative / totalPollVotes) * 100).toFixed(1);
+
+  const displayedOpinions = showAllOpinions ? mockExpertOpinions : mockExpertOpinions.slice(0, 3);
 
   const handleCommentLike = (commentId: number) => {
     setComments(prev =>
@@ -246,147 +251,167 @@ const PostDetail = () => {
           </Card>
 
           <div className="mb-8">
-            <h2 className="mb-4 text-2xl font-bold text-foreground">🎯 각 진영별 목소리</h2>
-            <div className="space-y-4">
-              {mockPerspectives.map((perspective) => (
-                <Collapsible
-                  key={perspective.stance}
-                  open={openPerspectives.includes(perspective.stance)}
-                  onOpenChange={() => togglePerspective(perspective.stance)}
-                >
-                  <Card className="overflow-hidden border-none bg-card shadow-sm hover:shadow-md transition-shadow rounded-2xl">
-                    <CollapsibleTrigger className="w-full">
-                      <div className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
-                        <div className="flex items-center gap-3">
-                          <Badge className={`${getStanceColor(perspective.stance)} rounded-full px-4 py-1`}>
-                            {perspective.title}
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
+                <Sparkles className="h-6 w-6 text-primary" />
+                다양한 관점의 목소리
+              </h2>
+            </div>
+            <div className="space-y-3">
+              {displayedOpinions.map((expert, idx) => (
+                <Card key={idx} className="border-none bg-card shadow-sm hover:shadow-md transition-all rounded-2xl overflow-hidden">
+                  <div className="p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0">
+                        <div className="w-12 h-12 rounded-full bg-gradient-hero flex items-center justify-center">
+                          <User className="h-6 w-6 text-white" />
+                        </div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-bold text-foreground text-[15px]">{expert.name}</h4>
+                          <Badge className="bg-primary/10 text-primary border-primary/20 text-xs px-2 py-0">
+                            {expert.role}
                           </Badge>
                         </div>
-                        <ChevronDown
-                          className={`h-5 w-5 text-muted-foreground transition-transform ${
-                            openPerspectives.includes(perspective.stance) ? "rotate-180" : ""
-                          }`}
-                        />
+                        <p className="text-foreground/90 text-[14px] leading-relaxed mb-3">
+                          "{expert.opinion}"
+                        </p>
+                        <a 
+                          href={expert.url}
+                          className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors group"
+                        >
+                          <span>{expert.source}</span>
+                          <ExternalLink className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
+                        </a>
                       </div>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent>
-                      <div className="border-t p-4">
-                        <p className="mb-4 text-foreground leading-relaxed">{perspective.summary}</p>
-                        <div className="space-y-2">
-                          <h4 className="font-semibold text-foreground">대표 기사</h4>
-                          {perspective.articles.map((article, idx) => (
-                            <a
-                              key={idx}
-                              href={article.url}
-                              className="flex items-center justify-between rounded-xl border bg-muted/20 p-3 transition-all hover:bg-muted/40 hover:shadow-sm"
-                            >
-                              <div>
-                                <p className="font-medium text-foreground">{article.title}</p>
-                                <p className="text-sm text-muted-foreground">{article.source}</p>
-                              </div>
-                              <ExternalLink className="h-4 w-4 text-muted-foreground" />
-                            </a>
-                          ))}
-                        </div>
-                      </div>
-                    </CollapsibleContent>
-                  </Card>
-                </Collapsible>
+                    </div>
+                  </div>
+                </Card>
               ))}
+              
+              {mockExpertOpinions.length > 3 && (
+                <Button
+                  variant="outline"
+                  className="w-full rounded-xl"
+                  onClick={() => setShowAllOpinions(!showAllOpinions)}
+                >
+                  {showAllOpinions ? "접기" : `더보기 (${mockExpertOpinions.length - 3}개 더)`}
+                  <ChevronDown className={`ml-2 h-4 w-4 transition-transform ${showAllOpinions ? "rotate-180" : ""}`} />
+                </Button>
+              )}
             </div>
           </div>
 
           <Card className="mb-8 border border-border bg-card shadow-sm rounded-3xl overflow-hidden">
             <div className="p-6">
-              <div className="flex items-start gap-3 mb-5">
+              <div className="flex items-start gap-3 mb-4">
                 <div className="p-2.5 rounded-xl bg-primary/10">
                   <Calculator className="h-6 w-6 text-primary" />
                 </div>
                 <div className="flex-1">
                   <h3 className="text-xl font-bold text-foreground">정책 영향 계산기</h3>
                   <p className="text-sm text-muted-foreground mt-1">
-                    {mockUser.age}세 · {mockUser.gender} · {mockUser.occupation} · {mockUser.region}
+                    이 정책이 나에게 미치는 영향을 확인해보세요
                   </p>
                 </div>
               </div>
               
-              <div className="space-y-3">
-                <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-4">
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center">
-                      <span className="text-red-500 font-bold text-lg">!</span>
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h4 className="font-bold text-foreground">직접 영향도</h4>
-                        <Badge className="bg-red-500 text-white">매우 높음</Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-                        방송PD로서 방송통신위원회의 정책 결정은 업무 환경과 편집 독립성에 직접적인 영향을 미칩니다.
-                      </p>
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">편집 자율성</span>
-                          <span className="font-semibold text-red-500">-35%</span>
-                        </div>
-                        <div className="h-2 bg-background rounded-full overflow-hidden">
-                          <div className="h-full bg-red-500 w-[35%]"></div>
-                        </div>
-                      </div>
-                      <div className="mt-3 space-y-2">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">콘텐츠 검열 가능성</span>
-                          <span className="font-semibold text-red-500">+42%</span>
-                        </div>
-                        <div className="h-2 bg-background rounded-full overflow-hidden">
-                          <div className="h-full bg-red-500 w-[42%]"></div>
-                        </div>
-                      </div>
-                    </div>
+              {!showImpactCalculator ? (
+                <Button
+                  onClick={() => setShowImpactCalculator(true)}
+                  className="w-full rounded-xl h-12 text-base"
+                >
+                  <Calculator className="h-5 w-5 mr-2" />
+                  영향 계산해보기
+                </Button>
+              ) : (
+                <>
+                  <div className="mb-4 p-3 bg-muted/30 rounded-xl">
+                    <p className="text-sm text-muted-foreground">
+                      {mockUser.age}세 · {mockUser.gender} · {mockUser.occupation} · {mockUser.region}
+                    </p>
                   </div>
-                </div>
-                
-                <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-2xl p-4">
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center">
-                      <span className="text-yellow-500 font-bold text-lg">!</span>
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h4 className="font-bold text-foreground">간접 영향도</h4>
-                        <Badge className="bg-yellow-500 text-white">중간</Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-                        서울 거주 20대 여성으로서 미디어 접근성과 정보의 다양성에 영향을 받을 수 있습니다.
-                      </p>
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">정보 다양성</span>
-                          <span className="font-semibold text-yellow-500">-18%</span>
+                  
+                  <div className="space-y-3">
+                    <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center">
+                          <span className="text-red-500 font-bold text-lg">!</span>
                         </div>
-                        <div className="h-2 bg-background rounded-full overflow-hidden">
-                          <div className="h-full bg-yellow-500 w-[18%]"></div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h4 className="font-bold text-foreground">직접 영향도</h4>
+                            <Badge className="bg-red-500 text-white">매우 높음</Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground leading-relaxed mb-3">
+                            방송PD로서 방송통신위원회의 정책 결정은 업무 환경과 편집 독립성에 직접적인 영향을 미칩니다.
+                          </p>
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-muted-foreground">편집 자율성</span>
+                              <span className="font-semibold text-red-500">-35%</span>
+                            </div>
+                            <div className="h-2 bg-background rounded-full overflow-hidden">
+                              <div className="h-full bg-red-500 w-[35%]"></div>
+                            </div>
+                          </div>
+                          <div className="mt-3 space-y-2">
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-muted-foreground">콘텐츠 검열 가능성</span>
+                              <span className="font-semibold text-red-500">+42%</span>
+                            </div>
+                            <div className="h-2 bg-background rounded-full overflow-hidden">
+                              <div className="h-full bg-red-500 w-[42%]"></div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </div>
+                    
+                    <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-2xl p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center">
+                          <span className="text-yellow-500 font-bold text-lg">!</span>
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h4 className="font-bold text-foreground">간접 영향도</h4>
+                            <Badge className="bg-yellow-500 text-white">중간</Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground leading-relaxed mb-3">
+                            서울 거주 20대 여성으로서 미디어 접근성과 정보의 다양성에 영향을 받을 수 있습니다.
+                          </p>
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-muted-foreground">정보 다양성</span>
+                              <span className="font-semibold text-yellow-500">-18%</span>
+                            </div>
+                            <div className="h-2 bg-background rounded-full overflow-hidden">
+                              <div className="h-full bg-yellow-500 w-[18%]"></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
 
-                <div className="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-4">
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
-                      <span className="text-blue-500 font-bold text-lg">i</span>
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-bold text-foreground mb-2">장기적 영향</h4>
-                      <p className="text-sm text-muted-foreground leading-relaxed">
-                        향후 5년간 미디어 산업 전반의 구조 변화가 예상됩니다. 
-                        방송 제작 환경과 콘텐츠 규제 기준이 재편될 가능성이 높습니다.
-                      </p>
+                    <div className="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
+                          <span className="text-blue-500 font-bold text-lg">i</span>
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-bold text-foreground mb-2">장기적 영향</h4>
+                          <p className="text-sm text-muted-foreground leading-relaxed">
+                            향후 5년간 미디어 산업 전반의 구조 변화가 예상됩니다. 
+                            방송 제작 환경과 콘텐츠 규제 기준이 재편될 가능성이 높습니다.
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
+                </>
+              )}
             </div>
           </Card>
 
@@ -397,84 +422,59 @@ const PostDetail = () => {
             <Card className="border-none bg-card shadow-sm rounded-2xl overflow-hidden">
               <div className="p-6">
                 <p className="mb-6 text-lg text-foreground">이 사안에 대한 당신의 입장은?</p>
-                <div className="grid gap-3 mb-6">
+                <div className="grid grid-cols-2 gap-4 mb-6">
                   <button
-                    onClick={() => handlePollVote("support")}
+                    onClick={() => handlePollVote("positive")}
                     disabled={userVote !== null}
-                    className={`relative overflow-hidden rounded-xl border-2 p-4 text-left transition-all ${
-                      userVote === "support"
-                        ? "border-demos-blue bg-demos-blue/10"
+                    className={`relative overflow-hidden rounded-2xl border-2 p-6 text-center transition-all ${
+                      userVote === "positive"
+                        ? "border-green-500 bg-green-500/10"
                         : userVote
                         ? "border-muted opacity-50"
-                        : "border-muted hover:border-demos-blue hover:bg-demos-blue/5"
+                        : "border-muted hover:border-green-500 hover:bg-green-500/5"
                     } ${userVote ? "cursor-not-allowed" : "cursor-pointer"}`}
                   >
                     <div className="relative z-10">
-                      <p className="font-semibold text-foreground">찬성</p>
+                      <div className="text-4xl mb-3">😊</div>
+                      <p className="font-bold text-lg text-foreground mb-1">긍정적</p>
                       {userVote && (
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {pollVotes.support}표 ({supportPercent}%)
+                        <p className="text-sm text-muted-foreground mt-2">
+                          {pollVotes.positive}표 ({positivePercent}%)
                         </p>
                       )}
                     </div>
                     {userVote && (
                       <div
-                        className="absolute left-0 top-0 h-full bg-demos-blue/20 transition-all"
-                        style={{ width: `${supportPercent}%` }}
+                        className="absolute left-0 bottom-0 h-1.5 bg-green-500 transition-all"
+                        style={{ width: `${positivePercent}%` }}
                       />
                     )}
                   </button>
 
                   <button
-                    onClick={() => handlePollVote("oppose")}
+                    onClick={() => handlePollVote("negative")}
                     disabled={userVote !== null}
-                    className={`relative overflow-hidden rounded-xl border-2 p-4 text-left transition-all ${
-                      userVote === "oppose"
-                        ? "border-demos-red bg-demos-red/10"
+                    className={`relative overflow-hidden rounded-2xl border-2 p-6 text-center transition-all ${
+                      userVote === "negative"
+                        ? "border-red-500 bg-red-500/10"
                         : userVote
                         ? "border-muted opacity-50"
-                        : "border-muted hover:border-demos-red hover:bg-demos-red/5"
+                        : "border-muted hover:border-red-500 hover:bg-red-500/5"
                     } ${userVote ? "cursor-not-allowed" : "cursor-pointer"}`}
                   >
                     <div className="relative z-10">
-                      <p className="font-semibold text-foreground">반대</p>
+                      <div className="text-4xl mb-3">😞</div>
+                      <p className="font-bold text-lg text-foreground mb-1">부정적</p>
                       {userVote && (
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {pollVotes.oppose}표 ({opposePercent}%)
+                        <p className="text-sm text-muted-foreground mt-2">
+                          {pollVotes.negative}표 ({negativePercent}%)
                         </p>
                       )}
                     </div>
                     {userVote && (
                       <div
-                        className="absolute left-0 top-0 h-full bg-demos-red/20 transition-all"
-                        style={{ width: `${opposePercent}%` }}
-                      />
-                    )}
-                  </button>
-
-                  <button
-                    onClick={() => handlePollVote("neutral")}
-                    disabled={userVote !== null}
-                    className={`relative overflow-hidden rounded-xl border-2 p-4 text-left transition-all ${
-                      userVote === "neutral"
-                        ? "border-demos-neutral bg-demos-neutral/10"
-                        : userVote
-                        ? "border-muted opacity-50"
-                        : "border-muted hover:border-demos-neutral hover:bg-demos-neutral/5"
-                    } ${userVote ? "cursor-not-allowed" : "cursor-pointer"}`}
-                  >
-                    <div className="relative z-10">
-                      <p className="font-semibold text-foreground">중립</p>
-                      {userVote && (
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {pollVotes.neutral}표 ({neutralPercent}%)
-                        </p>
-                      )}
-                    </div>
-                    {userVote && (
-                      <div
-                        className="absolute left-0 top-0 h-full bg-demos-neutral/20 transition-all"
-                        style={{ width: `${neutralPercent}%` }}
+                        className="absolute left-0 bottom-0 h-1.5 bg-red-500 transition-all"
+                        style={{ width: `${negativePercent}%` }}
                       />
                     )}
                   </button>
