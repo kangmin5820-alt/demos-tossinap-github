@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import PostCard from "@/components/PostCard";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ interface Post {
 }
 
 const Index = () => {
+  const navigate = useNavigate();
   const [filter, setFilter] = useState<"all" | "official">("all");
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
@@ -139,29 +141,34 @@ const Index = () => {
               const totalVotes = post.poll_options?.reduce((sum, opt) => sum + opt.votes, 0) || 0;
               
               return (
-                <PostCard
+                <div
                   key={post.id}
-                  id={Number(post.id.split('-').join('').substring(0, 8))}
-                  title={post.title || ''}
-                  summary={post.content}
-                  category={post.category}
-                  timestamp={getTimeAgo(post.created_at)}
-                  commentCount={post.comments_count || 0}
-                  views={post.views}
-                  isOfficial={post.is_official}
-                  likes={post.likes}
-                  type={post.type}
-                  attachments={post.poll_options && post.poll_options.length > 0 ? {
-                    poll: {
-                      question: "이 사안에 대한 당신의 입장은?",
-                      options: post.poll_options.map(opt => ({
-                        text: opt.option_text,
-                        votes: opt.votes,
-                      })),
-                      totalVotes,
-                    }
-                  } : undefined}
-                />
+                  onClick={() => navigate(`/post/${post.id}`)}
+                  className="cursor-pointer transition-transform hover:scale-[1.01]"
+                >
+                  <PostCard
+                    id={Number(post.id.split('-').join('').substring(0, 8))}
+                    title={post.title || ''}
+                    summary={post.content}
+                    category={post.category}
+                    timestamp={getTimeAgo(post.created_at)}
+                    commentCount={post.comments_count || 0}
+                    views={post.views}
+                    isOfficial={post.is_official}
+                    likes={post.likes}
+                    type={post.type}
+                    attachments={post.poll_options && post.poll_options.length > 0 ? {
+                      poll: {
+                        question: "이 사안에 대한 당신의 입장은?",
+                        options: post.poll_options.map(opt => ({
+                          text: opt.option_text,
+                          votes: opt.votes,
+                        })),
+                        totalVotes,
+                      }
+                    } : undefined}
+                  />
+                </div>
               );
             })}
           </div>
