@@ -25,6 +25,8 @@ import {
   Smile,
   Frown,
   TrendingUp,
+  Calculator,
+  FileText,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -109,6 +111,7 @@ const PostDetail = () => {
   const [replyContent, setReplyContent] = useState("");
   const [showExperts, setShowExperts] = useState(false);
   const [topComments, setTopComments] = useState<Comment[]>([]);
+  const [showCalculator, setShowCalculator] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -414,10 +417,25 @@ const PostDetail = () => {
 
           <Separator className="my-4" />
 
-          {/* 게시물 내용 */}
-          <div className="prose max-w-none mb-6">
-            <p className="text-foreground whitespace-pre-wrap">{post.content}</p>
-          </div>
+          {/* 핵심 요약 섹션 */}
+          {post.is_official && (
+            <div className="bg-muted/50 p-4 rounded-lg mb-6 border-l-4 border-primary">
+              <div className="flex items-start gap-3">
+                <FileText className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="font-semibold mb-2">핵심 요약</h3>
+                  <p className="text-sm text-foreground leading-relaxed">{post.content}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 게시물 내용 (일반 게시물인 경우만) */}
+          {!post.is_official && (
+            <div className="prose max-w-none mb-6">
+              <p className="text-foreground whitespace-pre-wrap">{post.content}</p>
+            </div>
+          )}
 
           {/* 통계 */}
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
@@ -436,12 +454,83 @@ const PostDetail = () => {
           </div>
         </Card>
 
+        {/* 다양한 관점의 목소리 */}
+        {post.is_official && (
+          <Card className="p-6 mb-6">
+            <Collapsible open={showExperts} onOpenChange={setShowExperts}>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" className="w-full justify-between p-4 h-auto">
+                  <div className="flex items-center gap-2">
+                    <Lightbulb className="h-5 w-5 text-primary" />
+                    <span className="text-lg font-semibold">다양한 관점의 목소리</span>
+                  </div>
+                  <ChevronDown className={`h-5 w-5 transition-transform ${showExperts ? 'rotate-180' : ''}`} />
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-4">
+                <div className="space-y-4">
+                  {mockExpertOpinions.map((expert) => (
+                    <Card key={expert.id} className={`p-4 border ${getStanceColor(expert.stance)}`}>
+                      <div className="flex items-start gap-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarFallback>{expert.name[0]}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-semibold">{expert.name}</span>
+                            <Badge variant="outline" className="text-xs">
+                              {expert.stance === "긍정적" ? "찬성 입장" : expert.stance === "부정적" ? "반대 입장" : "중립 입장"}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground mb-2">{expert.affiliation}</p>
+                          <p className="text-sm mb-2">{expert.opinion}</p>
+                          <div className="text-xs text-muted-foreground">핵심: {expert.highlight}</div>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          </Card>
+        )}
+
+        {/* 정책 영향 계산기 */}
+        {post.is_official && (
+          <Card className="p-6 mb-6 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+            <div className="flex items-start gap-3 mb-4">
+              <Calculator className="h-6 w-6 text-primary flex-shrink-0" />
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold mb-1">정책 영향 계산기</h3>
+                <p className="text-sm text-muted-foreground">
+                  이 정책이 나에게 미치는 영향을 확인해보세요
+                </p>
+              </div>
+            </div>
+            <Button 
+              onClick={() => setShowCalculator(!showCalculator)}
+              className="w-full bg-primary hover:bg-primary/90"
+              size="lg"
+            >
+              <Calculator className="h-4 w-4 mr-2" />
+              오랜 계산하기
+            </Button>
+            {showCalculator && (
+              <div className="mt-4 p-4 bg-background rounded-lg border">
+                <p className="text-sm text-muted-foreground text-center">
+                  계산기 기능은 준비 중입니다
+                </p>
+              </div>
+            )}
+          </Card>
+        )}
+
         {/* 투표 섹션 */}
         {pollOptions.length > 0 && (
           <Card className="p-6 mb-6">
             <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
               <Target className="h-5 w-5 text-primary" />
-              이 사안에 대한 당신의 입장은?
+              투표하기
             </h3>
             <div className="space-y-3">
               {pollOptions.map((option) => {
@@ -476,204 +565,134 @@ const PostDetail = () => {
           </Card>
         )}
 
-        {/* 전문가 의견 섹션 */}
-        {post.is_official && (
-          <Card className="p-6 mb-6">
-            <Collapsible open={showExperts} onOpenChange={setShowExperts}>
-              <CollapsibleTrigger asChild>
-                <Button variant="ghost" className="w-full justify-between p-4 h-auto">
-                  <div className="flex items-center gap-2">
-                    <Lightbulb className="h-5 w-5 text-primary" />
-                    <span className="text-lg font-semibold">다양한 관점의 목소리</span>
-                  </div>
-                  <ChevronDown className={`h-5 w-5 transition-transform ${showExperts ? 'rotate-180' : ''}`} />
-                </Button>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="mt-4">
-                <div className="space-y-4">
-                  {mockExpertOpinions.map((expert) => (
-                    <Card key={expert.id} className={`p-4 border ${getStanceColor(expert.stance)}`}>
-                      <div className="flex items-start gap-3">
-                        <Avatar className="h-10 w-10">
-                          <AvatarFallback>{expert.name[0]}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="font-semibold">{expert.name}</span>
-                            {getStanceIcon(expert.stance)}
-                          </div>
-                          <p className="text-sm text-muted-foreground mb-2">{expert.affiliation}</p>
-                          <div className="bg-background/50 p-3 rounded-lg mb-2">
-                            <p className="text-sm font-medium text-primary mb-1">핵심 포인트</p>
-                            <p className="text-sm">{expert.highlight}</p>
-                          </div>
-                          <p className="text-sm">{expert.opinion}</p>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
-          </Card>
-        )}
+        {/* 의견 섹션 제목 */}
+        <Card className="p-6 mb-6">
+          <h3 className="text-lg font-semibold flex items-center gap-2">
+            <MessageCircle className="h-5 w-5 text-primary" />
+            의견 ({comments.length})
+          </h3>
+        </Card>
 
         {/* 대표 의견 섹션 */}
         {topComments.length > 0 && (
-          <Card className="p-6 mb-6">
-            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-primary" />
-              대표 의견
-            </h3>
+          <div className="mb-6">
             <div className="space-y-4">
-              {topComments.map((comment, index) => (
-                <div key={comment.id} className="flex gap-3 p-3 bg-muted/50 rounded-lg">
-                  <div className="flex-shrink-0">
-                    <Badge variant="secondary" className="rounded-full w-8 h-8 flex items-center justify-center">
-                      {index + 1}
-                    </Badge>
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm mb-2">{comment.content}</p>
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                      <span>{getTimeAgo(comment.created_at)}</span>
-                      <span className="flex items-center gap-1">
-                        <ThumbsUp className="h-3 w-3" />
-                        {comment.likes}
-                      </span>
+              {topComments.map((comment, index) => {
+                // 샘플 정치 성향 배지 (실제로는 사용자 프로필에서 가져와야 함)
+                const stances = ["진보적", "보수적", "중도"];
+                const stance = stances[index % 3];
+                
+                return (
+                  <Card key={comment.id} className="p-4">
+                    <div className="flex gap-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarFallback>익{index + 1}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="font-semibold">익명{index + 1}</span>
+                          <Badge 
+                            variant="outline" 
+                            className={`text-xs ${
+                              stance === "진보적" ? "border-blue-500 text-blue-500" : 
+                              stance === "보수적" ? "border-red-500 text-red-500" : 
+                              "border-yellow-500 text-yellow-500"
+                            }`}
+                          >
+                            {stance}
+                          </Badge>
+                        </div>
+                        <p className="text-sm mb-2">{comment.content}</p>
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                          <button 
+                            onClick={() => handleLikeComment(comment.id)}
+                            className="hover:text-foreground flex items-center gap-1"
+                          >
+                            <ThumbsUp className="h-3 w-3" />
+                            <span>{comment.likes}</span>
+                          </button>
+                          <button className="hover:text-foreground flex items-center gap-1">
+                            <MessageCircle className="h-3 w-3" />
+                            답글
+                          </button>
+                        </div>
+                        
+                        {/* 답글 표시 */}
+                        {comment.replies && comment.replies.length > 0 && (
+                          <div className="mt-3 space-y-3">
+                            {comment.replies.map((reply, replyIndex) => {
+                              const replyStance = stances[(index + replyIndex + 1) % 3];
+                              return (
+                                <div key={reply.id} className="flex gap-3 ml-8">
+                                  <Avatar className="h-8 w-8">
+                                    <AvatarFallback>답{replyIndex + 1}</AvatarFallback>
+                                  </Avatar>
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <span className="text-sm font-semibold">익명</span>
+                                      <Badge 
+                                        variant="outline" 
+                                        className={`text-xs ${
+                                          replyStance === "진보적" ? "border-blue-500 text-blue-500" : 
+                                          replyStance === "보수적" ? "border-red-500 text-red-500" : 
+                                          "border-yellow-500 text-yellow-500"
+                                        }`}
+                                      >
+                                        {replyStance}
+                                      </Badge>
+                                    </div>
+                                    <p className="text-sm">{reply.content}</p>
+                                    <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                                      <button 
+                                        onClick={() => handleLikeComment(reply.id)}
+                                        className="hover:text-foreground flex items-center gap-1"
+                                      >
+                                        <ThumbsUp className="h-3 w-3" />
+                                        <span>{reply.likes}</span>
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </div>
-              ))}
+                  </Card>
+                );
+              })}
             </div>
-          </Card>
+          </div>
         )}
 
-        {/* 댓글 섹션 */}
+        {/* 전체 댓글 섹션 */}
+        {/* 댓글 작성 섹션 */}
         <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">
-            댓글 {comments.length}개
-          </h3>
-
-          {/* 댓글 작성 */}
-          <div className="mb-6">
-            <Textarea
-              placeholder={user ? "댓글을 입력하세요..." : "로그인 후 댓글을 작성할 수 있습니다"}
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              disabled={!user}
-              className="mb-2"
-            />
-            <Button
-              onClick={handleAddComment}
-              disabled={!user || !newComment.trim()}
-              className="gap-2"
-            >
-              <Send className="h-4 w-4" />
-              댓글 작성
-            </Button>
-          </div>
-
-          <Separator className="my-6" />
-
-          {/* 댓글 목록 */}
-          <div className="space-y-4">
-            {comments.map((comment) => (
-              <div key={comment.id} className="space-y-3">
-                <div className="flex gap-3">
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback>U</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <div className="bg-muted rounded-lg p-3">
-                      <p className="text-sm">{comment.content}</p>
-                    </div>
-                    <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-                      <span>{getTimeAgo(comment.created_at)}</span>
-                      <button 
-                        onClick={() => handleLikeComment(comment.id)}
-                        className="hover:text-foreground flex items-center gap-1"
-                      >
-                        <ThumbsUp className="h-3 w-3" />
-                        <span>{comment.likes}</span>
-                      </button>
-                      <button
-                        onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
-                        className="hover:text-foreground"
-                      >
-                        답글
-                      </button>
-                    </div>
-
-                    {/* 답글 작성 폼 */}
-                    {replyingTo === comment.id && (
-                      <div className="mt-3 ml-4">
-                        <Textarea
-                          placeholder="답글을 입력하세요..."
-                          value={replyContent}
-                          onChange={(e) => setReplyContent(e.target.value)}
-                          className="mb-2"
-                        />
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            onClick={() => handleAddReply(comment.id)}
-                            disabled={!replyContent.trim()}
-                          >
-                            작성
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              setReplyingTo(null);
-                              setReplyContent('');
-                            }}
-                          >
-                            취소
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* 답글 목록 */}
-                    {comment.replies && comment.replies.length > 0 && (
-                      <div className="ml-8 mt-3 space-y-3">
-                        {comment.replies.map((reply) => (
-                          <div key={reply.id} className="flex gap-3">
-                            <Avatar className="h-6 w-6">
-                              <AvatarFallback>U</AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1">
-                              <div className="bg-muted rounded-lg p-3">
-                                <p className="text-sm">{reply.content}</p>
-                              </div>
-                              <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-                                <span>{getTimeAgo(reply.created_at)}</span>
-                                <button 
-                                  onClick={() => handleLikeComment(reply.id)}
-                                  className="hover:text-foreground flex items-center gap-1"
-                                >
-                                  <ThumbsUp className="h-3 w-3" />
-                                  <span>{reply.likes}</span>
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
+          <div className="mb-6 flex gap-3">
+            <Avatar className="h-10 w-10">
+              <AvatarFallback>U</AvatarFallback>
+            </Avatar>
+            <div className="flex-1">
+              <Textarea
+                placeholder={user ? "의견을 남겨주세요" : "로그인 후 댓글을 작성할 수 있습니다"}
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                disabled={!user}
+                className="mb-2 bg-muted border-0"
+                rows={1}
+              />
+              <div className="flex justify-end">
+                <Button
+                  onClick={handleAddComment}
+                  disabled={!user || !newComment.trim()}
+                  className="bg-primary hover:bg-primary/90"
+                >
+                  의견 작성
+                </Button>
               </div>
-            ))}
+            </div>
           </div>
-
-          {comments.length === 0 && (
-            <p className="text-center text-muted-foreground py-8">
-              첫 댓글을 작성해보세요!
-            </p>
-          )}
         </Card>
       </main>
     </div>
