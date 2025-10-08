@@ -102,7 +102,6 @@ const PostDetail = () => {
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState("");
   const [showExperts, setShowExperts] = useState(false);
-  const [showCalculator, setShowCalculator] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -365,12 +364,12 @@ const PostDetail = () => {
         </div>
 
         {/* 핵심 요약 */}
-        <Card className="p-6 mb-6 bg-muted/50">
+        <Card className="p-6 mb-6 bg-muted/50 border-0">
           <div className="flex items-start gap-3">
             <div className="text-2xl">📄</div>
             <div className="flex-1">
               <h2 className="font-semibold mb-3">핵심 요약</h2>
-              <p className="text-sm leading-relaxed text-foreground/90">{post.content}</p>
+              <p className="text-sm leading-relaxed">{post.content}</p>
             </div>
           </div>
         </Card>
@@ -383,43 +382,45 @@ const PostDetail = () => {
               <h2 className="font-semibold text-lg">다양한 관점의 목소리</h2>
             </div>
             
-            <div className="space-y-4">
-              {mockExpertOpinions.slice(0, showExperts ? mockExpertOpinions.length : 3).map((expert) => (
-                <Card key={expert.id} className="p-4 bg-muted/50">
+            <div className="space-y-3">
+              {mockExpertOpinions.slice(0, showExperts ? mockExpertOpinions.length : 1).map((expert) => (
+                <Card key={expert.id} className="p-4 bg-muted/50 border-0">
                   <div className="flex items-start gap-3">
                     <Avatar className="h-10 w-10 bg-yellow-500">
-                      <AvatarFallback className="bg-yellow-500 text-black">
+                      <AvatarFallback className="bg-yellow-500 text-black font-medium">
                         {expert.name[0]}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="font-semibold">{expert.name}</span>
-                        <Badge className="text-xs bg-yellow-500 hover:bg-yellow-600 text-black">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-semibold text-sm">{expert.name}</span>
+                        <Badge className="text-xs bg-yellow-500 hover:bg-yellow-500 text-black border-0">
                           {expert.affiliation}
                         </Badge>
                       </div>
-                      <p className="text-sm mb-2">{expert.opinion}</p>
-                      <p className="text-xs text-muted-foreground">기타: 뉴스토크 📺</p>
+                      <p className="text-sm mb-2 leading-relaxed">{expert.opinion}</p>
+                      <p className="text-xs text-muted-foreground">JTBC 뉴스룸 📺</p>
                     </div>
                   </div>
                 </Card>
               ))}
             </div>
 
-            <Button 
-              variant="ghost" 
-              className="w-full mt-4 border border-border"
-              onClick={() => setShowExperts(!showExperts)}
-            >
-              {showExperts ? '접기' : `더보기 (2개 더)`} ▼
-            </Button>
+            {!showExperts && (
+              <Button 
+                variant="outline" 
+                className="w-full mt-3 border-border hover:bg-muted/50"
+                onClick={() => setShowExperts(true)}
+              >
+                더보기 (2개 더) ▼
+              </Button>
+            )}
           </div>
         )}
 
         {/* 정책 영향 계산기 */}
         {post.is_official && (
-          <Card className="p-6 mb-6 bg-muted/50">
+          <Card className="p-6 mb-6 bg-muted/50 border-0">
             <div className="flex items-start gap-3 mb-4">
               <div className="text-2xl">📋</div>
               <div className="flex-1">
@@ -430,18 +431,10 @@ const PostDetail = () => {
               </div>
             </div>
             <Button 
-              onClick={() => setShowCalculator(!showCalculator)}
-              className="w-full bg-yellow-500 hover:bg-yellow-600 text-black h-12 font-medium"
+              className="w-full bg-yellow-500 hover:bg-yellow-600 text-black h-12 font-medium border-0"
             >
-              📊 영향 계산하기
+              📋 영향 계산하기
             </Button>
-            {showCalculator && (
-              <div className="mt-4 p-4 bg-background rounded-lg border">
-                <p className="text-sm text-muted-foreground text-center">
-                  계산기 기능은 준비 중입니다
-                </p>
-              </div>
-            )}
           </Card>
         )}
 
@@ -453,10 +446,10 @@ const PostDetail = () => {
               <h2 className="font-semibold text-lg">투표하기</h2>
             </div>
             
-            <Card className="p-6 bg-muted/50">
+            <Card className="p-6 bg-muted/50 border-0">
               <p className="text-sm mb-4">이 사안에 대한 당신의 입장은?</p>
               
-              <div className="space-y-3 mb-4">
+              <div className="flex gap-3 mb-4">
                 {pollOptions.map((option) => {
                   const percentage = totalVotes > 0 ? (option.votes / totalVotes) * 100 : 0;
                   const isSelected = selectedVote === option.id;
@@ -464,25 +457,21 @@ const PostDetail = () => {
                   return (
                     <Button
                       key={option.id}
-                      variant={isSelected ? "default" : "outline"}
+                      variant="outline"
                       onClick={() => handleVote(option.id)}
                       disabled={!!selectedVote}
-                      className="w-full h-auto p-4 relative overflow-hidden justify-start bg-background hover:bg-muted"
+                      className="flex-1 h-auto p-4 bg-background hover:bg-muted border-border"
                     >
-                      <div
-                        className="absolute left-0 top-0 h-full bg-muted transition-all"
-                        style={{ width: `${percentage}%` }}
-                      />
-                      <div className="relative flex items-center gap-2">
-                        <span className="text-lg">😊</span>
-                        <span className="font-medium">{option.option_text}</span>
+                      <div className="flex flex-col items-center gap-2">
+                        <span className="text-2xl">😊</span>
+                        <span className="font-medium text-sm">{option.option_text}</span>
                       </div>
                     </Button>
                   );
                 })}
               </div>
               
-              <p className="text-sm text-center text-muted-foreground">
+              <p className="text-xs text-center text-muted-foreground">
                 총 {totalVotes}명이 투표했습니다
               </p>
             </Card>
@@ -499,39 +488,39 @@ const PostDetail = () => {
           {/* 댓글 목록 */}
           <div className="space-y-4 mb-6">
             {comments.map((comment, index) => {
-              const stances = ["진보적", "보수적", "중도"];
-              const stance = stances[index % 3];
+              const isTopComment = index === 0 && comment.likes > 100;
+              const badges = [
+                { text: "대표의견", color: "bg-yellow-500 hover:bg-yellow-500 text-black border-0" },
+                { text: "포용적", color: "bg-blue-500 hover:bg-blue-500 text-white border-0" },
+                { text: "반대", color: "bg-red-500 hover:bg-red-500 text-white border-0" }
+              ];
+              const badge = isTopComment ? badges[0] : badges[(index % 2) + 1];
               
               return (
                 <div key={comment.id} className="space-y-3">
                   <div className="flex gap-3">
-                    <Avatar className="h-10 w-10 bg-primary">
-                      <AvatarFallback className="bg-primary text-primary-foreground">
-                        익{index + 1}
+                    <Avatar className="h-10 w-10 bg-yellow-500">
+                      <AvatarFallback className="bg-yellow-500 text-black font-medium">
+                        {index === 0 ? '김' : index === 1 ? '이' : '정'}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="font-semibold">김정치</span>
-                        <Badge 
-                          variant="outline" 
-                          className={`text-xs ${
-                            stance === "진보적" ? "bg-blue-500/10 border-blue-500 text-blue-600" : 
-                            stance === "보수적" ? "bg-red-500/10 border-red-500 text-red-600" : 
-                            "bg-yellow-500/10 border-yellow-500 text-yellow-600"
-                          }`}
-                        >
-                          {stance}
+                        <span className="font-semibold text-sm">
+                          {index === 0 ? '김정치' : index === 1 ? '이준현' : '정책전문가'}
+                        </span>
+                        <Badge className={`text-xs ${badge.color}`}>
+                          {badge.text}
                         </Badge>
                       </div>
-                      <p className="text-sm mb-3">{comment.content}</p>
+                      <p className="text-sm mb-3 leading-relaxed">{comment.content}</p>
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <button 
                           onClick={() => handleLikeComment(comment.id)}
                           className="hover:text-foreground flex items-center gap-1"
                         >
                           <ThumbsUp className="h-4 w-4" />
-                          <span>{comment.likes}</span>
+                          <span>{comment.likes.toLocaleString()}</span>
                         </button>
                         <button 
                           onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
@@ -556,6 +545,7 @@ const PostDetail = () => {
                               size="sm"
                               onClick={() => handleAddReply(comment.id)}
                               disabled={!replyContent.trim()}
+                              className="bg-yellow-500 hover:bg-yellow-600 text-black"
                             >
                               작성
                             </Button>
@@ -577,29 +567,29 @@ const PostDetail = () => {
                       {comment.replies && comment.replies.length > 0 && (
                         <div className="mt-4 ml-8 space-y-3">
                           {comment.replies.map((reply, replyIndex) => {
-                            const replyStance = stances[(index + replyIndex + 1) % 3];
+                            const replyBadges = [
+                              { text: "포용적", color: "bg-blue-500 hover:bg-blue-500 text-white border-0" },
+                              { text: "반대", color: "bg-red-500 hover:bg-red-500 text-white border-0" },
+                              { text: "중립", color: "bg-green-500 hover:bg-green-500 text-white border-0" }
+                            ];
+                            const replyBadge = replyBadges[replyIndex % 3];
                             return (
                               <div key={reply.id} className="flex gap-3">
-                                <Avatar className="h-8 w-8 bg-primary">
-                                  <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                                    익
+                                <Avatar className="h-8 w-8 bg-yellow-500">
+                                  <AvatarFallback className="bg-yellow-500 text-black text-xs font-medium">
+                                    {replyIndex === 0 ? '박' : '미'}
                                   </AvatarFallback>
                                 </Avatar>
                                 <div className="flex-1">
                                   <div className="flex items-center gap-2 mb-1">
-                                    <span className="text-sm font-semibold">박민주</span>
-                                    <Badge 
-                                      variant="outline" 
-                                      className={`text-xs ${
-                                        replyStance === "진보적" ? "bg-blue-500/10 border-blue-500 text-blue-600" : 
-                                        replyStance === "보수적" ? "bg-red-500/10 border-red-500 text-red-600" : 
-                                        "bg-yellow-500/10 border-yellow-500 text-yellow-600"
-                                      }`}
-                                    >
-                                      {replyStance}
+                                    <span className="text-sm font-semibold">
+                                      {replyIndex === 0 ? '박민주' : '미디어연구가'}
+                                    </span>
+                                    <Badge className={`text-xs ${replyBadge.color}`}>
+                                      {replyBadge.text}
                                     </Badge>
                                   </div>
-                                  <p className="text-sm mb-2">{reply.content}</p>
+                                  <p className="text-sm mb-2 leading-relaxed">{reply.content}</p>
                                   <div className="flex items-center gap-4 text-xs text-muted-foreground">
                                     <button 
                                       onClick={() => handleLikeComment(reply.id)}
@@ -626,23 +616,23 @@ const PostDetail = () => {
 
           {/* 댓글 작성 */}
           <div className="flex gap-3">
-            <Avatar className="h-10 w-10 bg-primary">
-              <AvatarFallback className="bg-primary text-primary-foreground">U</AvatarFallback>
+            <Avatar className="h-10 w-10 bg-yellow-500">
+              <AvatarFallback className="bg-yellow-500 text-black font-medium">U</AvatarFallback>
             </Avatar>
             <div className="flex-1">
               <Textarea
-                placeholder={user ? "의견을 남겨주세요" : "로그인 후 댓글을 작성할 수 있습니다"}
+                placeholder={user ? "의견을 남겨주세요..." : "로그인 후 댓글을 작성할 수 있습니다"}
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 disabled={!user}
-                className="mb-2 bg-muted border-0"
+                className="mb-2 bg-background border-border"
                 rows={2}
               />
               <div className="flex justify-end">
                 <Button
                   onClick={handleAddComment}
                   disabled={!user || !newComment.trim()}
-                  className="bg-primary hover:bg-primary/90"
+                  className="bg-yellow-500 hover:bg-yellow-600 text-black"
                 >
                   의견 작성
                 </Button>
