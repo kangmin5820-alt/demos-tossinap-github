@@ -47,6 +47,16 @@ const mockPosts: Post[] = [
     views: 1234,
     isOfficial: true,
     type: "official",
+    attachments: {
+      poll: {
+        question: "이 사안에 대한 당신의 입장은?",
+        options: [
+          { text: "긍정적", votes: 523 },
+          { text: "부정적", votes: 412 }
+        ],
+        totalVotes: 935
+      }
+    }
   },
   // 일반인 핫한 게시물
   {
@@ -185,7 +195,7 @@ const Index = () => {
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-6">
           {filteredPosts.map((post) => (
             <PostCard key={post.id} {...post} />
           ))}
